@@ -1,6 +1,6 @@
 import {defineNuxtModule, addPlugin, createResolver, resolveFiles} from '@nuxt/kit'
 import type {NuxtPage} from "@nuxt/schema";
-import {joinURL, withoutTrailingSlash} from "ufo";
+import {withoutTrailingSlash} from "ufo";
 import minimatch from "minimatch"
 import {pascalToKebabCase} from "./runtime/utils/string/pascal-to-kebab-case"
 
@@ -25,10 +25,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
     // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
     addPlugin(resolver.resolve('./runtime/plugin'))
-
-    const route = options?.route
-
-    if (!route) return
 
     const include = options.include || '**/*.stories.vue'
     const root = options.root || []
@@ -67,7 +63,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
     nuxt.hook('pages:extend', async (pages) => {
       const files = await resolveFiles(nuxt.options.rootDir, include)
 
-      route.children = route.children || []
+      const route = {
+        name: 'stories',
+        path: '/',
+        file: resolver.resolve('./runtime/components/StoriesPage.vue'),
+        children: [] as NuxtPage[],
+      }
 
       files.forEach((file) => {
         const fileRoute = getFileRoute(file)
@@ -75,10 +76,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         route.children!.push(fileRoute)
       })
 
-      pages.push({
-        ...route,
-        path: joinURL(route.path, '/:story*'),
-      })
+      pages = [route]
     })
 
     nuxt.hook('builder:watch', (event, path) => {

@@ -12,8 +12,8 @@ const { storiesNavIsOpen, toggleStoriesNav } = useStories()
 
 <style module lang="scss">
 .root {
-    width: rem(32);
-    height: rem(32);
+    width: 32px;
+    height: 32px;
     border: 1px solid #ccc;
     border-radius: 100%;
 }
@@ -23,6 +23,6 @@ const { storiesNavIsOpen, toggleStoriesNav } = useStories()
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: rem(4);
+    gap: 4px;
 }
 </style>

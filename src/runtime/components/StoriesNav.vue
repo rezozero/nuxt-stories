@@ -100,13 +100,13 @@ const filteredItemList = computed(() => {
     <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
         <div :class="$style.home">
             <NuxtLink :to="'/' + basePath">◎ Stories</NuxtLink>
-            <NuxtStoriesNavToggle ref="toggle" :class="$style.toggle" />
+            <StoriesNavToggle ref="toggle" :class="$style.toggle" />
         </div>
         <div :class="$style.search">
             <input v-model="search" type="text" :class="$style.search__input" />
             <button :class="$style.search__clear" @click="search = ''"></button>
         </div>
-        <NuxtStoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" open />
+        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" open />
     </div>
 </template>
 
@@ -119,20 +119,20 @@ const filteredItemList = computed(() => {
     width: 100%;
     height: 100vh;
     flex-shrink: 0;
-    padding: 0 rem(20) rem(40);
+    padding: 0 20px 40px;
     border-right: 1px solid #e3e3e3ff;
     background-color: #f6f6f6ff;
-    font-size: rem(14);
+    font-size: 14px;
     overflow-y: auto;
 
-    @include media('>=md') {
-        position: sticky;
-        overflow: auto;
-        width: 17vw;
-        min-width: rem(150);
-        max-width: 400px;
-        resize: horizontal;
-    }
+    // @include media('>=md') {
+    //     position: sticky;
+    //     overflow: auto;
+    //     width: 17vw;
+    //     min-width: 150px;
+    //     max-width: 400px;
+    //     resize: horizontal;
+    // }
 
     &--open {
         display: block;
@@ -144,8 +144,8 @@ const filteredItemList = computed(() => {
     top: 0;
     display: flex;
     align-items: center;
-    padding-top: rem(20);
-    padding-bottom: rem(15);
+    padding-top: 20px;
+    padding-bottom: 15px;
     border-bottom: 1px solid #e3e3e3ff;
     margin-bottom: 1em;
     background-color: inherit;
@@ -154,21 +154,21 @@ const filteredItemList = computed(() => {
 .toggle {
     margin-left: auto;
 
-    @include media('>=md') {
-        display: none;
-    }
+    // @include media('>=md') {
+    //     display: none;
+    // }
 }
 
 .search {
-    --input-height: #{rem(14)};
+    --input-height: #{14px};
 
     position: relative;
     display: flex;
     align-items: center;
     border-radius: 6px;
-    margin-bottom: rem(16) !important;
+    margin-bottom: 16px !important;
     background-color: rgba(black, 0.04);
-    padding-block: rem(8);
+    padding-block: 8px;
 }
 
 .search__input {
@@ -178,9 +178,9 @@ const filteredItemList = computed(() => {
 .search__clear {
     all: unset;
     position: absolute;
-    right: rem(10);
+    right: 10px;
     display: flex;
-    width: rem(18);
+    width: 18px;
     align-items: center;
     justify-content: center;
     border-radius: 100vmax;

@@ -1,5 +1,8 @@
 export default defineNuxtConfig({
+  devtools: { enabled: true },
   modules: ['../src/module'],
-  myModule: {},
-  devtools: { enabled: true }
+  stories: {
+    include: '**/*.stories.vue',
+    root: ['components', 'stories'],
+  },
 })

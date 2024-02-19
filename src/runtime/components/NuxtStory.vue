@@ -32,7 +32,7 @@ const settingIsOpen = ref(true)
 
 <style lang="scss" module>
 .root {
-    padding: rem(20) var(--gutter);
+    padding: 20px var(--gutter);
 
     &--layout-fullscreen {
         padding: 0;
@@ -43,22 +43,22 @@ const settingIsOpen = ref(true)
     position: sticky;
     z-index: 2;
     top: 0;
-    padding: rem(20) rem(40) rem(15);
+    padding: 20px 40px 15px;
     border-top: 1px solid #e3e3e3;
     border-bottom: 1px solid #e3e3e3;
     background-color: #f1f1f1;
-    font-size: rem(14);
+    font-size: 14px;
 }
 
 .title {
-    min-height: rem(20);
+    min-height: 20px;
 }
 
 .content {
     display: flex;
     flex-wrap: wrap;
-    margin-top: rem(20);
-    gap: rem(40);
+    margin-top: 20px;
+    gap: 40px;
 }
 
 .input {

@@ -8,12 +8,12 @@
 .root {
     display: flex;
     width: 100%;
-    height: rem(56);
+    height: 56px;
     align-items: center;
     background-color: #f6f6f6ff;
 }
 
 .toggle {
-    margin-left: rem(10);
+    margin-left: 10px;
 }
 </style>

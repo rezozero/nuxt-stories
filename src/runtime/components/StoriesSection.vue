@@ -33,7 +33,7 @@ const toggle = () => (tooltipDisplayed.value = !tooltipDisplayed.value)
 
 <style lang="scss" module>
 .root {
-    padding-block: rem(30);
+    padding-block: 30px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
     div[data-backspace] {
@@ -44,7 +44,7 @@ const toggle = () => (tooltipDisplayed.value = !tooltipDisplayed.value)
 .head {
     position: relative;
     flex-basis: 100%;
-    margin-bottom: rem(10);
+    margin-bottom: 10px;
     z-index: 10;
 }
 
@@ -55,13 +55,13 @@ const toggle = () => (tooltipDisplayed.value = !tooltipDisplayed.value)
 
 .tooltip {
     display: inline;
-    margin-left: rem(6);
+    margin-left: 6px;
 }
 
 .tooltip__button {
     display: inline-flex;
-    width: rem(18);
-    height: rem(18);
+    width: 18px;
+    height: 18px;
     align-items: center;
     justify-content: center;
     border-radius: 50vmax;
@@ -71,7 +71,7 @@ const toggle = () => (tooltipDisplayed.value = !tooltipDisplayed.value)
 .tooltip__content {
     position: absolute;
     background-color: rgb(241, 241, 241);
-    padding: rem(15) rem(20);
+    padding: 15px 20px;
     max-width: 56ch;
     top: calc(100% + 10px);
 }
@@ -80,7 +80,7 @@ const toggle = () => (tooltipDisplayed.value = !tooltipDisplayed.value)
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    padding: rem(20) rem(12);
-    gap: rem(10) rem(40);
+    padding: 20px 12px;
+    gap: 10px 40px;
 }
 </style>
