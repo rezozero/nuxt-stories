@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { RouteRecordRaw } from 'vue-router'
 import type { ComponentPublicInstance } from 'vue'
-import {withoutTrailingSlash} from "ufo";
 import StoriesNavItem,  {type NavItem} from "./StoriesNavItem.vue";
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import {useStories} from "../composables/use-stories";
@@ -10,16 +9,14 @@ import StoriesNavToggle from "./StoriesNavToggle.vue";
 
 const route = useRoute()
 
-const basePath = computed(() => withoutTrailingSlash(route.path).split('/')[0])
-
 const childRoutes = computed(() => {
     return route.matched[0]?.children
 })
 
-const { storiesNavIsOpen } = useStories()
+const { storiesNavIsOpen, storiesPath } = useStories()
 
 const itemList = computed(() => {
-    const result: StoriesNavItem = {}
+    const result: NavItem = {}
 
     childRoutes.value.forEach((childRoute: RouteRecordRaw) => {
         const filePath = childRoute.meta?.filePath as string | undefined
@@ -33,7 +30,7 @@ const itemList = computed(() => {
         filePathParts.forEach((filePathPart, index) => {
             if (index === filePathParts.length - 1) {
                 root[filePathPart] = {
-                    to: '/' + basePath.value + '/' + childRoute.path,
+                    to: storiesPath(childRoute.path),
                     label: filePathPart,
                 }
             } else {
@@ -100,7 +97,7 @@ const filteredItemList = computed(() => {
 <template>
     <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
         <div :class="$style.home">
-            <NuxtLink :to="'/' + basePath">◎ Stories</NuxtLink>
+            <NuxtLink :to="storiesPath('/')">◎ Stories</NuxtLink>
             <StoriesNavToggle ref="toggle" :class="$style.toggle" />
         </div>
         <div :class="$style.search">

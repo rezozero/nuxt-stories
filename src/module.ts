@@ -1,14 +1,21 @@
-import {defineNuxtModule, addPlugin, createResolver, resolveFiles, addComponent, addLayout} from '@nuxt/kit'
+import {
+  defineNuxtModule,
+  createResolver,
+  resolveFiles,
+  addComponent,
+  addLayout,
+  addImportsDir, extendPages, addPlugin
+} from '@nuxt/kit'
 import type {NuxtPage} from "@nuxt/schema";
 import {withoutTrailingSlash} from "ufo";
 import minimatch from "minimatch"
 import {pascalToKebabCase} from "./runtime/utils/string/pascal-to-kebab-case"
+import path from "path";
 
-// Module options TypeScript interface definition
 export interface NuxtStoriesOptions {
   route?: NuxtPage
-  include?: string
-  root?: string[]
+  include?: string | string[]
+  pattern?: string | string[]
 }
 
 export default defineNuxtModule<NuxtStoriesOptions>({
@@ -19,21 +26,25 @@ export default defineNuxtModule<NuxtStoriesOptions>({
   // Default configuration options of the Nuxt module
   defaults: {},
   setup (options, nuxt) {
-    if (process.env.NUXT_STORIES !== '1') return
+    if (!nuxt.options.dev && !nuxt.options._prepare && process.env.NUXT_STORIES !== '1') return
 
     const resolver = createResolver(import.meta.url)
+    const pattern = options.pattern || '**/*.stories.vue'
+    const include = options.include || []
+    const route: NuxtPage = {
+      name: 'stories',
+      file: resolver.resolve('./runtime/components/StoriesPage.vue'),
+      ...options.route,
+      path: path.join('/', options.route?.path || '_stories', '/:story*'),
+      children: [] as NuxtPage[],
+    }
 
-    // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
-    addPlugin(resolver.resolve('./runtime/plugin'))
-
-    const include = options.include || '**/*.stories.vue'
-    const root = options.root || []
     const getFileRoute = (file: string): NuxtPage => {
       const filePath = withoutTrailingSlash(
         file
           .replace(nuxt.options.rootDir, '')
           .split('/')
-          .filter((pathPart) => !root.includes(pathPart))
+          .filter((pathFragment) => !include.includes(pathFragment))
           .join('/')
           .split('.')[0],
       )
@@ -49,6 +60,9 @@ export default defineNuxtModule<NuxtStoriesOptions>({
       }
     }
 
+    // do not add the extension, it will be handled during the build
+    addPlugin(resolver.resolve('./runtime/plugin'))
+
     addComponent({
       name: 'NuxtStory',
       filePath: resolver.resolve('./runtime/components/NuxtStory.vue'),
@@ -56,20 +70,11 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
     addLayout(resolver.resolve('./runtime/layouts/stories.vue'), 'stories')
 
-    nuxt.hook('imports:dirs', (dirs) => {
-      dirs.push(resolver.resolve('./runtime/composables'))
-    })
+    addImportsDir(resolver.resolve('./runtime/composables'))
 
-    nuxt.hook('pages:extend', async (pages) => {
-      const files = await resolveFiles(nuxt.options.rootDir, include)
 
-      const route = {
-        name: 'stories',
-        path: '/',
-        layout: 'stories',
-        file: resolver.resolve('./runtime/components/StoriesPage.vue'),
-        children: [] as NuxtPage[],
-      }
+    extendPages(async (pages) => {
+      const files = await resolveFiles(nuxt.options.rootDir, pattern)
 
       files.forEach((file) => {
         const fileRoute = getFileRoute(file)
@@ -77,12 +82,11 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         route.children!.push(fileRoute)
       })
 
-      pages.length = 0
       pages.push(route)
     })
 
     nuxt.hook('builder:watch', (event, path) => {
-      if (!minimatch(path, include)) return
+      if (!minimatch(path, pattern)) return
 
       if (event === 'add' || event === 'unlink') {
         nuxt.callHook('restart')

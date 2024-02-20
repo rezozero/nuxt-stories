@@ -4,6 +4,10 @@
 // })
 import StoriesNav from "./StoriesNav.vue";
 import StoriesTopBar from "./StoriesTopBar.vue";
+
+definePageMeta({
+    layout: 'stories'
+})
 </script>
 
 <template>

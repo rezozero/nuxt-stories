@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "dev": "nuxi dev",
-    "dev:stories": "NUXT_STORIES=1 nuxi dev --port=6006",
     "build": "nuxi build",
     "generate": "nuxi generate"
   },

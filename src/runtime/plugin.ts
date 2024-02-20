@@ -1,5 +1,10 @@
 import { defineNuxtPlugin } from '#app'
+import {joinURL} from "ufo";
 
-export default defineNuxtPlugin((nuxtApp) => {
-  console.log('Plugin injected by my-module!')
+export default defineNuxtPlugin(() => {
+  // return {
+  //   provide: {
+  //     $storiesPath: (path: string) => joinURL('/_stories', path),
+  //   }
+  // }
 })
