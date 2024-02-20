@@ -98,13 +98,17 @@ const filteredItemList = computed(() => {
     <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
         <div :class="$style.home">
             <NuxtLink :to="storiesPath('/')"> ◎ Stories </NuxtLink>
-            <StoriesNavToggle ref="toggle" :class="$style.toggle" />
+            <StoriesNavToggle ref="toggle" :class="$style.toggle"
+/>
         </div>
         <div :class="$style.search">
             <input v-model="search" type="text" :class="$style.search__input" />
-            <button :class="$style.search__clear" @click="search = ''" />
+            <button :class="$style.search__clear" @click="search = ''"
+/>
         </div>
-        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" open />
+        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key"
+:item="item" :label="key" open
+/>
     </div>
 </template>
 
@@ -123,14 +127,14 @@ const filteredItemList = computed(() => {
     font-size: 14px;
     overflow-y: auto;
 
-    // @include media('>=md') {
-    //     position: sticky;
-    //     overflow: auto;
-    //     width: 17vw;
-    //     min-width: 150px;
-    //     max-width: 400px;
-    //     resize: horizontal;
-    // }
+    @media (min-width: 768px) {
+        position: sticky;
+        overflow: auto;
+        width: 17vw;
+        min-width: 150px;
+        max-width: 400px;
+        resize: horizontal;
+    }
 
     &--open {
         display: block;
@@ -152,9 +156,9 @@ const filteredItemList = computed(() => {
 .toggle {
     margin-left: auto;
 
-    // @include media('>=md') {
-    //     display: none;
-    // }
+    @media (min-width: 768px) {
+        display: none;
+    }
 }
 
 .search {

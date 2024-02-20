@@ -26,7 +26,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
   },
   // Default configuration options of the Nuxt module
   defaults: {},
-  setup(options, nuxt) {
+  async setup(options, nuxt) {
     if (!nuxt.options.dev && !nuxt.options._prepare && process.env.NUXT_STORIES !== '1') return
 
     const resolver = createResolver(import.meta.url)
@@ -61,7 +61,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
       }
     }
 
-    addComponent({
+    await addComponent({
       name: 'NuxtStory',
       filePath: resolver.resolve('./runtime/components/NuxtStory.vue'),
     })
