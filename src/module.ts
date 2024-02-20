@@ -14,7 +14,7 @@ import path from "path";
 
 export interface NuxtStoriesOptions {
   route?: NuxtPage
-  include?: string | string[]
+  root?: string | string[]
   pattern?: string | string[]
 }
 
@@ -30,7 +30,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
     const resolver = createResolver(import.meta.url)
     const pattern = options.pattern || '**/*.stories.vue'
-    const include = options.include || []
+    const root = options.root || ['components', 'stories']
     const route: NuxtPage = {
       name: 'stories',
       file: resolver.resolve('./runtime/components/StoriesPage.vue'),
@@ -44,7 +44,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         file
           .replace(nuxt.options.rootDir, '')
           .split('/')
-          .filter((pathFragment) => !include.includes(pathFragment))
+          .filter((pathFragment) => !root.includes(pathFragment))
           .join('/')
           .split('.')[0],
       )
@@ -59,9 +59,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         file,
       }
     }
-
-    // do not add the extension, it will be handled during the build
-    addPlugin(resolver.resolve('./runtime/plugin'))
 
     addComponent({
       name: 'NuxtStory',
