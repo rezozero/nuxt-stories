@@ -15,36 +15,22 @@ const toggle = () => (tooltipDisplayed.value = !tooltipDisplayed.value)
 </script>
 
 <template>
-  <div :class="$style.root">
-    <div
-      v-if="title || hasInfo"
-      :class="$style.head"
-    >
-      <h2 :class="$style.title">
-        {{ title }}
-      </h2>
-      <div :class="$style.tooltip">
-        <button
-          v-if="hasInfo"
-          :class="$style.tooltip__button"
-          class="text-body-xs"
-          @click="toggle"
-        >
-          i
-        </button>
-        <div
-          v-if="hasInfo && tooltipDisplayed"
-          class="text-body-xs"
-          :class="$style.tooltip__content"
-        >
-          <slot name="info" />
+    <div :class="$style.root">
+        <div v-if="title || hasInfo" :class="$style.head">
+            <h2 :class="$style.title">
+                {{ title }}
+            </h2>
+            <div :class="$style.tooltip">
+                <button v-if="hasInfo" :class="$style.tooltip__button" class="text-body-xs" @click="toggle">i</button>
+                <div v-if="hasInfo && tooltipDisplayed" class="text-body-xs" :class="$style.tooltip__content">
+                    <slot name="info" />
+                </div>
+            </div>
         </div>
-      </div>
+        <div :class="[$style.content, contentClass]">
+            <slot />
+        </div>
     </div>
-    <div :class="[$style.content, contentClass]">
-      <slot />
-    </div>
-  </div>
 </template>
 
 <style lang="scss" module>

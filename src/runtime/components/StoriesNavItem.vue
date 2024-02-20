@@ -20,6 +20,7 @@ const props = defineProps({
     },
     label: {
         type: [String, Number],
+        default: '',
     },
     open: Boolean,
 })
@@ -50,36 +51,23 @@ const isActiveParentRoute = computed(() => {
 </script>
 
 <template>
-  <NuxtLink
-    v-if="isLink"
-    :to="item.to"
-    :class="$style.link"
-  >
-    {{ item.label }}
-  </NuxtLink>
-  <div
-    v-else
-    :class="$style.folder"
-  >
-    <button
-      :class="[$style.folder__name, isActiveParentRoute && $style['folder__name--active']]"
-      @click="isOpen = !isOpen"
-    >
-      <span>{{ label }}</span>
-      <span> [{{ isOpen ? '−' : '+' }}]</span>
-    </button>
-    <ul v-if="isOpen">
-      <li
-        v-for="(childItem, key) in item"
-        :key="key"
-      >
-        <StoriesNavItem
-          :item="childItem"
-          :label="key"
-        />
-      </li>
-    </ul>
-  </div>
+    <NuxtLink v-if="isLink" :to="item.to" :class="$style.link">
+        {{ item.label }}
+    </NuxtLink>
+    <div v-else :class="$style.folder">
+        <button
+            :class="[$style.folder__name, isActiveParentRoute && $style['folder__name--active']]"
+            @click="isOpen = !isOpen"
+        >
+            <span>{{ label }}</span>
+            <span> [{{ isOpen ? '−' : '+' }}]</span>
+        </button>
+        <ul v-if="isOpen">
+            <li v-for="(childItem, key) in item" :key="key">
+                <StoriesNavItem :item="childItem" :label="key" />
+            </li>
+        </ul>
+    </div>
 </template>
 
 <style module lang="scss">

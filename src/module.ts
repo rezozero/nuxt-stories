@@ -4,13 +4,14 @@ import {
   resolveFiles,
   addComponent,
   addLayout,
-  addImportsDir, extendPages
+  addImportsDir,
+  extendPages,
 } from '@nuxt/kit'
-import type {NuxtPage} from "@nuxt/schema";
-import {withoutTrailingSlash} from "ufo";
-import minimatch from "minimatch"
-import {pascalToKebabCase} from "./runtime/utils/string/pascal-to-kebab-case"
-import path from "path";
+import type { NuxtPage } from '@nuxt/schema'
+import { withoutTrailingSlash } from 'ufo'
+import minimatch from 'minimatch'
+import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
+import path from 'path'
 
 export interface NuxtStoriesOptions {
   route?: NuxtPage
@@ -25,7 +26,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
   },
   // Default configuration options of the Nuxt module
   defaults: {},
-  setup (options, nuxt) {
+  setup(options, nuxt) {
     if (!nuxt.options.dev && !nuxt.options._prepare && process.env.NUXT_STORIES !== '1') return
 
     const resolver = createResolver(import.meta.url)
@@ -69,7 +70,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
     addImportsDir(resolver.resolve('./runtime/composables'))
 
-
     extendPages(async (pages) => {
       const files = await resolveFiles(nuxt.options.rootDir, pattern)
 
@@ -89,5 +89,5 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         nuxt.callHook('restart')
       }
     })
-  }
+  },
 })
