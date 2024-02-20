@@ -3,9 +3,9 @@ import StoriesNavToggle from "./StoriesNavToggle.vue";
 </script>
 
 <template>
-    <div :class="$style.root">
-        <StoriesNavToggle :class="$style.toggle" />
-    </div>
+  <div :class="$style.root">
+    <StoriesNavToggle :class="$style.toggle" />
+  </div>
 </template>
 
 <style module lang="scss">

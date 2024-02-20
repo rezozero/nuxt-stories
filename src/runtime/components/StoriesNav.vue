@@ -95,17 +95,35 @@ const filteredItemList = computed(() => {
 </script>
 
 <template>
-    <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
-        <div :class="$style.home">
-            <NuxtLink :to="storiesPath('/')">◎ Stories</NuxtLink>
-            <StoriesNavToggle ref="toggle" :class="$style.toggle" />
-        </div>
-        <div :class="$style.search">
-            <input v-model="search" type="text" :class="$style.search__input" />
-            <button :class="$style.search__clear" @click="search = ''"></button>
-        </div>
-        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" open />
+  <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
+    <div :class="$style.home">
+      <NuxtLink :to="storiesPath('/')">
+        ◎ Stories
+      </NuxtLink>
+      <StoriesNavToggle
+        ref="toggle"
+        :class="$style.toggle"
+      />
     </div>
+    <div :class="$style.search">
+      <input
+        v-model="search"
+        type="text"
+        :class="$style.search__input"
+      >
+      <button
+        :class="$style.search__clear"
+        @click="search = ''"
+      />
+    </div>
+    <StoriesNavItem
+      v-for="(item, key) in filteredItemList"
+      :key="key"
+      :item="item"
+      :label="key"
+      open
+    />
+  </div>
 </template>
 
 <style module lang="scss">

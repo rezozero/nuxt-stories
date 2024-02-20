@@ -1,7 +1,7 @@
 <template>
-    <NuxtStory>
-        <VSpinner :class="$style.root" />
-    </NuxtStory>
+  <NuxtStory>
+    <VSpinner :class="$style.root" />
+  </NuxtStory>
 </template>
 
 <style lang="scss" module>

@@ -5,9 +5,12 @@ const { storiesNavIsOpen, toggleStoriesNav } = useStories()
 </script>
 
 <template>
-    <button :class="$style.root" @click="toggleStoriesNav">
-        <span :class="$style.root__icon">{{ storiesNavIsOpen ? '⇤' : '⇥' }}</span>
-    </button>
+  <button
+    :class="$style.root"
+    @click="toggleStoriesNav"
+  >
+    <span :class="$style.root__icon">{{ storiesNavIsOpen ? '⇤' : '⇥' }}</span>
+  </button>
 </template>
 
 <style module lang="scss">
