@@ -5,7 +5,6 @@ import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useStories } from '../composables/use-stories'
 import { useRoute } from 'vue-router'
-import StoriesNavToggle from './StoriesNavToggle.vue'
 
 const route = useRoute()
 
@@ -56,6 +55,7 @@ watch(
 
 function onKeyUp(event: KeyboardEvent) {
     if (event.key === 'Escape') search.value = ''
+    if (event.key === 's') storiesNavIsOpen.value = !storiesNavIsOpen.value
     // if (event.key === 't') toggleStoriesNav()
 }
 
@@ -97,9 +97,7 @@ const filteredItemList = computed(() => {
 <template>
     <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
         <div :class="$style.home">
-            <NuxtLink :to="storiesPath('/')"> ◎ Stories </NuxtLink>
-            <StoriesNavToggle ref="toggle" :class="$style.toggle"
-/>
+            <NuxtLink :to="storiesPath('/')" :class="$style.title"> Stories </NuxtLink>
         </div>
         <div :class="$style.search">
             <input v-model="search" type="text" :class="$style.search__input" />
@@ -153,6 +151,12 @@ const filteredItemList = computed(() => {
     background-color: inherit;
 }
 
+.title {
+    font-size: 1.3rem;
+    text-decoration: none;
+    color: inherit;
+}
+
 .toggle {
     margin-left: auto;
 
@@ -162,19 +166,19 @@ const filteredItemList = computed(() => {
 }
 
 .search {
-    --input-height: #{14px};
-
     position: relative;
     display: flex;
     align-items: center;
     border-radius: 6px;
     margin-bottom: 16px !important;
     background-color: rgba(black, 0.04);
-    padding-block: 8px;
 }
 
 .search__input {
     width: 90%;
+    border: none;
+    background-color: transparent;
+    padding: 0.5em 0.2rem;
 }
 
 .search__clear {
