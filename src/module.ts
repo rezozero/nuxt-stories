@@ -4,7 +4,7 @@ import {
   resolveFiles,
   addComponent,
   addLayout,
-  addImportsDir, extendPages, addPlugin
+  addImportsDir, extendPages
 } from '@nuxt/kit'
 import type {NuxtPage} from "@nuxt/schema";
 import {withoutTrailingSlash} from "ufo";
