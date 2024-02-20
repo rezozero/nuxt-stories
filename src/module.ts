@@ -8,7 +8,7 @@ import {
   extendPages,
 } from '@nuxt/kit'
 import type { NuxtPage } from '@nuxt/schema'
-import { withoutTrailingSlash } from 'ufo'
+import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import minimatch from 'minimatch'
 import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
 import path from 'path'
@@ -32,11 +32,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
     const resolver = createResolver(import.meta.url)
     const pattern = options.pattern || '**/*.stories.vue'
     const root = options.root || ['components', 'stories']
+    const routeBasePath = path.join('/', options.route?.path || '_stories')
     const route: NuxtPage = {
       name: 'stories',
       file: resolver.resolve('./runtime/components/StoriesPage.vue'),
       ...options.route,
-      path: path.join('/', options.route?.path || '_stories', '/:story*'),
+      path: path.join(routeBasePath, '/:story*'),
       children: [] as NuxtPage[],
     }
 
@@ -53,7 +54,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
       return {
         name: routePath,
-        path: routePath,
+        path: withoutLeadingSlash(routePath),
         meta: {
           filePath,
         },

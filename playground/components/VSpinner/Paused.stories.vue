@@ -1,7 +1,8 @@
 <template>
-    <VStory>
-        <VSpinner play-state="paused" :class="$style.root" />
-    </VStory>
+    <NuxtStory>
+        <VSpinner play-state="paused" :class="$style.root"
+/>
+    </NuxtStory>
 </template>
 
 <style lang="scss" module>
