@@ -2,10 +2,11 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { ComponentPublicInstance } from 'vue'
 import {withoutTrailingSlash} from "ufo";
-import type {StoriesNavItem} from "~/src/runtime/components/StoriesNavItem.vue";
+import StoriesNavItem,  {type NavItem} from "./StoriesNavItem.vue";
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import {useStories} from "../composables/use-stories";
 import { useRoute } from 'vue-router'
+import StoriesNavToggle from "./StoriesNavToggle.vue";
 
 const route = useRoute()
 
@@ -38,7 +39,7 @@ const itemList = computed(() => {
             } else {
                 if (!root[filePathPart]) root[filePathPart] = {}
 
-                root = root[filePathPart] as StoriesNavItem
+                root = root[filePathPart] as NavItem
             }
         })
     })
@@ -73,7 +74,7 @@ const search = ref('')
 
 function filterComponentByName(query: string) {
     const itemEntries = Object.entries(itemList.value)
-    const result: StoriesNavItem = {}
+    const result: NavItem = {}
 
     itemEntries.forEach(([folder, content]) => {
         const components = Object.entries(content as Record<string, unknown>)

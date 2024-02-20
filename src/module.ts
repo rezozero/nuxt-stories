@@ -1,4 +1,4 @@
-import {defineNuxtModule, addPlugin, createResolver, resolveFiles} from '@nuxt/kit'
+import {defineNuxtModule, addPlugin, createResolver, resolveFiles, addComponent, addLayout} from '@nuxt/kit'
 import type {NuxtPage} from "@nuxt/schema";
 import {withoutTrailingSlash} from "ufo";
 import minimatch from "minimatch"
@@ -49,12 +49,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
       }
     }
 
-    nuxt.hook('components:dirs', (dirs) => {
-      dirs.push({
-        path: resolver.resolve('./runtime/components'),
-        pathPrefix: false,
-      })
+    addComponent({
+      name: 'NuxtStory',
+      filePath: resolver.resolve('./runtime/components/NuxtStory.vue'),
     })
+
+    addLayout(resolver.resolve('./runtime/layouts/stories.vue'), 'stories')
 
     nuxt.hook('imports:dirs', (dirs) => {
       dirs.push(resolver.resolve('./runtime/composables'))
@@ -66,6 +66,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
       const route = {
         name: 'stories',
         path: '/',
+        layout: 'stories',
         file: resolver.resolve('./runtime/components/StoriesPage.vue'),
         children: [] as NuxtPage[],
       }
@@ -76,7 +77,8 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         route.children!.push(fileRoute)
       })
 
-      pages = [route]
+      pages.length = 0
+      pages.push(route)
     })
 
     nuxt.hook('builder:watch', (event, path) => {

@@ -9,13 +9,13 @@ export interface ItemLink {
     label: string
 }
 
-export type StoriesNavItem = {
-    [key: string]: StoriesNavItem | ItemLink
+export type NavItem = {
+    [key: string]: NavItem | ItemLink
 }
 
 const props = defineProps({
     item: {
-        type: Object as PropType<StoriesNavItem | ItemLink>,
+        type: Object as PropType<NavItem | ItemLink>,
         required: true,
     },
     label: {

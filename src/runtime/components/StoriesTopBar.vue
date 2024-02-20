@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import StoriesNavToggle from "./StoriesNavToggle.vue";
+</script>
+
 <template>
     <div :class="$style.root">
         <StoriesNavToggle :class="$style.toggle" />

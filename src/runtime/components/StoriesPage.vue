@@ -2,6 +2,8 @@
 // definePageMeta({
 //     pageTransition: false,
 // })
+import StoriesNav from "./StoriesNav.vue";
+import StoriesTopBar from "./StoriesTopBar.vue";
 </script>
 
 <template>
