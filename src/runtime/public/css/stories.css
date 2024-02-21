@@ -2,13 +2,3 @@ body{
     padding: 0;
     margin: 0;
 }
-
-*:where(:not(html, iframe, canvas, img, svg, video, audio, symbol, svg *, symbol *, table, th, del, em)) {
-    all: unset;
-    display: revert;
-}
-
-button {
-    background-color: transparent;
-    border: unset;
-}
