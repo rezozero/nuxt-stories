@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.5
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.2...v0.1.5)
+
+### 🩹 Fixes
+
+- Import useRoute ([16fe8bb](https://github.com/rezozero/nuxt-stories/commit/16fe8bb))
+
+### 🏡 Chore
+
+- Bump version ([77c280f](https://github.com/rezozero/nuxt-stories/commit/77c280f))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.2
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.1...v0.1.2)

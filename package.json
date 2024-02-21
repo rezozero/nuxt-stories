@@ -1,6 +1,6 @@
 {
   "name": "@rezo-zero/nuxt-stories",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Nuxt stories module - a kind of ultra light Storybook",
   "repository": {
     "type": "git",
