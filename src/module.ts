@@ -62,15 +62,24 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             }
         }
 
+        // COMPONENTS
         await addComponent({
             name: 'NuxtStory',
             filePath: resolver.resolve('./runtime/components/NuxtStory.vue'),
         })
 
+        await addComponent({
+            name: 'NuxtStoryVariant',
+            filePath: resolver.resolve('./runtime/components/NuxtStoryVariant.vue'),
+        })
+
+        // LAYOUTS
         addLayout(resolver.resolve('./runtime/layouts/stories.vue'), 'stories')
 
+        // IMPORTS
         addImportsDir(resolver.resolve('./runtime/composables'))
 
+        // PAGES
         extendPages(async (pages) => {
             const files = await resolveFiles(nuxt.options.rootDir, pattern)
 
@@ -83,6 +92,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             pages.push(route)
         })
 
+        // WATCH
         nuxt.hook('builder:watch', (event, path) => {
             if (
                 typeof pattern === 'string'
@@ -96,6 +106,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             }
         })
 
+        // NITRO CONFIG
         nuxt.hook('nitro:config', async (nitroConfig) => {
             nitroConfig.publicAssets ||= []
             nitroConfig.publicAssets.push({
