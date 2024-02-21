@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from 'vue'
-import { computed } from 'vue'
+import { computed, ref, watchEffect, watch } from 'vue'
 import { NuxtLink } from '#components'
 import { useRoute } from 'vue-router'
 
@@ -27,7 +27,8 @@ const props = defineProps({
 
 const route = useRoute()
 
-const isOpen = computed(() => props.open)
+const link = ref<HTMLAnchorElement | null>(null)
+const folder = ref<HTMLDivElement | null>(null)
 
 const isLink = computed(() => typeof props.item.to === 'string')
 
@@ -46,16 +47,28 @@ function getLinkValues(obj: Object & { to?: string }) {
     }, [])
 }
 
-const isActiveParentRoute = computed(() => {
+const hasActiveParentRoute = computed(() => {
     return getLinkValues(props.item).includes(route.path)
+})
+
+const isOpen = ref(props.open || hasActiveParentRoute.value)
+
+watchEffect(() => {
+    if (hasActiveParentRoute.value) isOpen.value = true
+})
+
+watch(isOpen, () => {
+    if (isOpen.value) {
+        ;(link.value || folder.value)?.scrollIntoView()
+    }
 })
 </script>
 
 <template>
-    <NuxtLink v-if="isLink" :to="item.to" :class="$style.link">
+    <NuxtLink v-if="isLink" ref="link" :to="item.to" :class="$style.link">
         {{ item.label }}
     </NuxtLink>
-    <div v-else :class="[$style.folder, isActiveParentRoute && $style['folder--active']]">
+    <div v-else ref="folder" :class="[$style.folder, hasActiveParentRoute && $style['folder--active']]">
         <button :class="$style.button" @click="isOpen = !isOpen">
             <span>{{ label }}</span>
             <span :class="$style.icon">{{ isOpen ? '−' : '+' }}</span>
