@@ -55,7 +55,9 @@ watch(
 
 function onKeyUp(event: KeyboardEvent) {
     if (event.key === 'Escape') search.value = ''
-    if (event.key === 's') storiesNavIsOpen.value = !storiesNavIsOpen.value
+    if (event.key === 's' && document.activeElement?.tagName !== 'INPUT') {
+        storiesNavIsOpen.value = !storiesNavIsOpen.value
+    }
     // if (event.key === 't') toggleStoriesNav()
 }
 
