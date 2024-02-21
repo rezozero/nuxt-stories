@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.8
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.7...v0.1.8)
+
+### 🚀 Enhancements
+
+- Add layout to route defintion ([1f70995](https://github.com/rezozero/nuxt-stories/commit/1f70995))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.7
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.6...v0.1.7)
