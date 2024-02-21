@@ -70,10 +70,10 @@ watch(isOpen, () => {
     <NuxtLink v-if="isLink" ref="link" :to="item.to" :class="$style.link">
         {{ item.label }}
     </NuxtLink>
-    <div v-else ref="folder" :class="[$style.folder, hasActiveParentRoute && $style['folder--active']]">
+    <div v-else ref="folder" :class="[$style.folder, isOpen && $style['folder--active']]">
         <button :class="$style.button" @click="isOpen = !isOpen">
             <span>{{ label }}</span>
-            <span :class="$style.icon">{{ isOpen ? '−' : '+' }}</span>
+            <span :class="$style.icon"></span>
         </button>
         <ul v-if="isOpen">
             <li v-for="(childItem, key) in item" :key="key">
@@ -97,25 +97,55 @@ watch(isOpen, () => {
 }
 
 .button {
+    display: flex;
+    align-items: center;
     margin-block: 0.8rem 0.5rem;
+    padding: 0.15rem 0.3rem;
     white-space: nowrap;
     background-color: transparent;
     border: none;
-
-    .folder--active & {
-        font-weight: bold;
-    }
 }
 
 .icon {
+    position: relative;
     display: inline-flex;
-    width: 1rem;
-    height: 1rem;
+    width: 1.2rem;
+    height: 1.2rem;
     align-items: center;
     justify-content: center;
     margin-left: 0.5rem;
     border-radius: 100%;
     background-color: #e4e4e4;
+    font-size: 0.8rem;
+
+    &::before,
+    &::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: block;
+        background-color: currentColor;
+        content: '';
+        flex-shrink: 0;
+    }
+
+    &::before {
+        width: 8px;
+        height: 2px;
+        margin-top: -1px;
+        margin-left: -4px;
+    }
+
+    &::after {
+        width: 2px;
+        height: 8px;
+        margin-top: -4px;
+        margin-left: -1px;
+    }
+
+    .folder--active &::after {
+        display: none;
+    }
 }
 
 .folder ul {
