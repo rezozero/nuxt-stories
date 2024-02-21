@@ -32,14 +32,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <NuxtLayout name="stories">
-        <div :class="$style.root">
-            <StoriesNav />
-            <div :class="$style['page-wrapper']">
-                <NuxtPage />
-            </div>
+    <div :class="$style.root">
+        <StoriesNav />
+        <div :class="$style['page-wrapper']">
+            <NuxtPage />
         </div>
-    </NuxtLayout>
+    </div>
 </template>
 
 <style module lang="scss">

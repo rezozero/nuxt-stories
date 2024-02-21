@@ -37,6 +37,9 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             name: 'stories',
             file: resolver.resolve('./runtime/components/StoriesPage.vue'),
             ...options.route,
+            meta: {
+                layout: 'stories',
+            },
             path: path.join(routeBasePath, '/:story*'),
             children: [] as NuxtPage[],
         }
