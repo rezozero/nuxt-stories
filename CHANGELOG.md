@@ -1,6 +1,24 @@
 # Changelog
 
 
+## v0.1.7
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.6...v0.1.7)
+
+### 🚀 Enhancements
+
+- Add aside slot ([9246fe1](https://github.com/rezozero/nuxt-stories/commit/9246fe1))
+- Open/close nav ([896f83d](https://github.com/rezozero/nuxt-stories/commit/896f83d))
+- Add story variant ([4bdb488](https://github.com/rezozero/nuxt-stories/commit/4bdb488))
+
+### 🏡 Chore
+
+- Improve code organization ([9140147](https://github.com/rezozero/nuxt-stories/commit/9140147))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.6
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.5...v0.1.6)
