@@ -2,6 +2,7 @@
 import type { PropType } from 'vue'
 import { computed } from 'vue'
 import { NuxtLink } from '#components'
+import { useRoute } from 'vue-router'
 
 export interface ItemLink {
     to: string
