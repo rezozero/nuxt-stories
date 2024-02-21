@@ -11,6 +11,9 @@ dependencies:
   minimatch:
     specifier: ^9.0.3
     version: 9.0.3
+  ufo:
+    specifier: ^1.4.0
+    version: 1.4.0
 
 devDependencies:
   '@nuxt/devtools':

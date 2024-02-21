@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.10.2",
-    "minimatch": "^9.0.3"
+    "minimatch": "^9.0.3",
+    "ufo": "^1.4.0"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
