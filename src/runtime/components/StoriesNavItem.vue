@@ -56,7 +56,7 @@ const isActiveParentRoute = computed(() => {
         {{ item.label }}
     </NuxtLink>
     <div v-else :class="[$style.folder, isActiveParentRoute && $style['folder--active']]">
-        <button :class="$style.label" @click="isOpen = !isOpen">
+        <button :class="$style.button" @click="isOpen = !isOpen">
             <span>{{ label }}</span>
             <span :class="$style.icon">{{ isOpen ? '−' : '+' }}</span>
         </button>
@@ -81,9 +81,11 @@ const isActiveParentRoute = computed(() => {
     }
 }
 
-.label {
+.button {
     margin-bottom: 0.5em;
     white-space: nowrap;
+    background-color: transparent;
+    border: none;
 
     .folder--active & {
         font-weight: bold;
@@ -91,9 +93,11 @@ const isActiveParentRoute = computed(() => {
 }
 
 .icon {
-    display: inline-block;
+    display: inline-flex;
     width: 1rem;
     height: 1rem;
+    align-items: center;
+    justify-content: center;
     margin-left: 0.5rem;
     border-radius: 100%;
     background-color: #e4e4e4;
