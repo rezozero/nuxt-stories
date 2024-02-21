@@ -47,8 +47,10 @@ function getLinkValues(obj: Object & { to?: string }) {
     }, [])
 }
 
+const linkValues = computed(() => getLinkValues(props.item))
+
 const hasActiveParentRoute = computed(() => {
-    return getLinkValues(props.item).includes(route.path)
+    return linkValues.value.includes(route.path)
 })
 
 const isOpen = ref(props.open || hasActiveParentRoute.value)

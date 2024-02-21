@@ -105,7 +105,7 @@ const filteredItemList = computed(() => {
             <input v-model="search" type="text" :class="$style.search__input" />
             <button :class="$style.search__clear" @click="search = ''" />
         </div>
-        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" open />
+        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" />
     </div>
 </template>
 
