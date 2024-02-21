@@ -4,7 +4,6 @@ import StoriesNav from './StoriesNav.vue'
 
 <template>
     <NuxtLayout name="stories">
-        stories page
         <div :class="$style.root">
             <StoriesNav />
             <div :class="$style['page-wrapper']">
