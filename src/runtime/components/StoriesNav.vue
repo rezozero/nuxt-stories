@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { RouteRecordRaw } from 'vue-router'
 import type { ComponentPublicInstance } from 'vue'
-import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useStories } from '../composables/use-stories'
 import { useRoute } from 'vue-router'
+import { useStories } from '../composables/use-stories'
+import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 
 const route = useRoute()
 
@@ -97,16 +97,13 @@ const filteredItemList = computed(() => {
 <template>
     <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
         <div :class="$style.home">
-            <NuxtLink :to="storiesPath('/')" :class="$style.title"> Stories </NuxtLink>
+            <NuxtLink :to="storiesPath('/')" :class="$style.title"> Stories</NuxtLink>
         </div>
         <div :class="$style.search">
             <input v-model="search" type="text" :class="$style.search__input" />
-            <button :class="$style.search__clear" @click="search = ''"
-/>
+            <button :class="$style.search__clear" @click="search = ''" />
         </div>
-        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key"
-:item="item" :label="key" open
-/>
+        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" open />
     </div>
 </template>
 

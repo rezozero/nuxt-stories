@@ -1,7 +1,6 @@
 <template>
     <NuxtStory>
-        <VSpinner play-state="paused" :class="$style.root"
-/>
+        <VSpinner play-state="paused" :class="$style.root" />
     </NuxtStory>
 </template>
 
