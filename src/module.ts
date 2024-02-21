@@ -95,5 +95,13 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 nuxt.callHook('restart')
             }
         })
+
+        nuxt.hook('nitro:config', async (nitroConfig) => {
+            nitroConfig.publicAssets ||= []
+            nitroConfig.publicAssets.push({
+                dir: resolver.resolve('./runtime/public'),
+                maxAge: 60 * 60 * 24 * 365, // 1 year
+            })
+        })
     },
 })

@@ -1,5 +1,16 @@
 <script setup lang="ts">
 import StoriesNav from './StoriesNav.vue'
+import { useHead } from '#imports'
+
+// global styles
+useHead({
+    link: [
+        {
+            rel: 'stylesheet',
+            href: '/css/stories.css',
+        },
+    ],
+})
 </script>
 
 <template>
@@ -21,14 +32,5 @@ import StoriesNav from './StoriesNav.vue'
 
 .page-wrapper {
     flex-grow: 1;
-}
-
-.root button {
-    background-color: transparent;
-    border: unset;
-}
-
-.root button {
-    background-color: transparent;
 }
 </style>
