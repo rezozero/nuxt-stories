@@ -1,6 +1,40 @@
 # Changelog
 
 
+## v0.1.6
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.5...v0.1.6)
+
+### 🚀 Enhancements
+
+- Inject global styles ([caf1585](https://github.com/rezozero/nuxt-stories/commit/caf1585))
+- Open current item on load + scroll into view on opening ([1ad3b03](https://github.com/rezozero/nuxt-stories/commit/1ad3b03))
+- **StoriesNavItem:** Scroll block to nearest ([bd867a6](https://github.com/rezozero/nuxt-stories/commit/bd867a6))
+
+### 🩹 Fixes
+
+- **nav:** Do not hide if search input is active ([68ff6ca](https://github.com/rezozero/nuxt-stories/commit/68ff6ca))
+- **nav item:** Do not open all the items ([f5f43bb](https://github.com/rezozero/nuxt-stories/commit/f5f43bb))
+
+### 📦 Build
+
+- Indicates Node engine ([71e0fe0](https://github.com/rezozero/nuxt-stories/commit/71e0fe0))
+
+### 🏡 Chore
+
+- Remove debug ([be95544](https://github.com/rezozero/nuxt-stories/commit/be95544))
+
+### 🎨 Styles
+
+- Reduce global style ([72bfc64](https://github.com/rezozero/nuxt-stories/commit/72bfc64))
+- Improve nav item layout ([8c3282f](https://github.com/rezozero/nuxt-stories/commit/8c3282f))
+- **nav:** Improve layout ([cc44c17](https://github.com/rezozero/nuxt-stories/commit/cc44c17))
+- Improve style ([0153e0b](https://github.com/rezozero/nuxt-stories/commit/0153e0b))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.5
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.2...v0.1.5)
