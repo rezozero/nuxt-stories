@@ -13,7 +13,7 @@ const { storiesUIVisible } = useStories()
         <div :class="$style.main">
             <slot />
         </div>
-        <div v-if="$slots.aside && storiesUIVisible" :class="$style.aside">
+        <div v-if="$slots.aside" v-show="storiesUIVisible" :class="$style.aside">
             <slot name="aside" />
         </div>
     </div>

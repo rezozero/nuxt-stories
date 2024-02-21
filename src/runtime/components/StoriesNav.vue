@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { RouteRecordRaw } from 'vue-router'
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStories } from '../composables/use-stories'
 import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 
 const { storiesPath, storiesUIVisible } = useStories()
-
-// ITEM LIST
 const route = useRoute()
 
+// ITEM LIST
 const childRoutes = computed(() => {
     return route.matched[0]?.children
 })
@@ -81,60 +80,73 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener('keyup', onKeyUp)
 })
+
+// OPEN/CLOSE
+const isOpen = ref(false)
+
+watch(route, () => {
+    isOpen.value = false
+})
 </script>
 
 <template>
-    <div :class="[$style.root, storiesUIVisible && $style['root--open']]">
-        <div :class="$style.home">
+    <div v-show="storiesUIVisible" :class="[$style.root, isOpen && $style['root--open']]">
+        <div :class="$style.top">
             <NuxtLink :to="storiesPath('/')" :class="$style.title"> Stories</NuxtLink>
+            <button :class="$style.toggle" @click="isOpen = !isOpen"></button>
         </div>
-        <div :class="$style.search">
-            <input v-model="search" type="text" :class="$style.search__input" />
-            <button :class="$style.search__clear" @click="search = ''" />
+        <div :class="$style.main">
+            <div :class="$style.search">
+                <input v-model="search" type="text" :class="$style.search__input" />
+                <button :class="$style.search__clear" @click="search = ''" />
+            </div>
+            <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" />
         </div>
-        <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" />
     </div>
 </template>
 
 <style module lang="scss">
 .root {
-    position: fixed;
+    position: sticky;
     z-index: 1000;
     top: 0;
-    display: none;
     width: 100%;
-    height: 100vh;
     flex-shrink: 0;
-    padding: 0 20px 40px;
     border-right: 1px solid #e3e3e3ff;
     background-color: #f6f6f6ff;
     font-size: 14px;
     overflow-y: auto;
 
     @media (min-width: 768px) {
-        position: sticky;
         overflow: auto;
         width: 17vw;
+        height: 100vh;
         min-width: 150px;
         max-width: 400px;
+        padding-inline: 1rem;
         resize: horizontal;
     }
 
     &--open {
-        display: block;
+        @media (max-width: 767px) {
+            position: fixed;
+            height: 100vh;
+        }
     }
 }
 
-.home {
+.top {
     position: sticky;
     top: 0;
     display: flex;
     align-items: center;
-    padding-top: 20px;
-    padding-bottom: 15px;
+    padding: 1rem;
     border-bottom: 1px solid #e3e3e3ff;
-    margin-bottom: 1em;
     background-color: inherit;
+
+    @media (min-width: 768px) {
+        padding-inline: 0;
+    }
 }
 
 .title {
@@ -144,10 +156,51 @@ onBeforeUnmount(() => {
 }
 
 .toggle {
+    display: flex;
+    width: 2.5rem;
+    height: 2.5rem;
     margin-left: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background-color: lightgrey;
+    border-radius: 100%;
 
     @media (min-width: 768px) {
         display: none;
+    }
+
+    &::before,
+    &::after {
+        display: block;
+        width: 14px;
+        height: 2px;
+        content: '';
+        background-color: currentColor;
+    }
+
+    .root--open &::before {
+        transform: translateY(2px) rotate(45deg);
+    }
+
+    .root--open &::after {
+        transform: translateY(-2px) rotate(-45deg);
+    }
+}
+
+.main {
+    display: none;
+    margin-top: 1em;
+    padding: 1rem 1rem 2rem;
+
+    @media (min-width: 768px) {
+        display: block;
+        padding-inline: 0;
+    }
+
+    .root--open & {
+        display: block;
     }
 }
 
