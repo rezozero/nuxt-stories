@@ -1,6 +1,10 @@
 <template>
     <NuxtStory>
         <VSpinner :class="$style.root" />
+        <template #aside>
+            <h2>Settings</h2>
+            <button>ok</button>
+        </template>
     </NuxtStory>
 </template>
 

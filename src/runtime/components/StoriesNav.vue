@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { RouteRecordRaw } from 'vue-router'
-import type { ComponentPublicInstance } from 'vue'
-import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStories } from '../composables/use-stories'
 import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
@@ -12,7 +11,7 @@ const childRoutes = computed(() => {
     return route.matched[0]?.children
 })
 
-const { storiesNavIsOpen, storiesPath } = useStories()
+const { storiesPath, storiesUIVisible } = useStories()
 
 const itemList = computed(() => {
     const result: NavItem = {}
@@ -43,22 +42,8 @@ const itemList = computed(() => {
     return result
 })
 
-const toggle = ref<ComponentPublicInstance | null>(null)
-watch(
-    () => route.params,
-    () => {
-        if (toggle.value && getComputedStyle(toggle.value.$el).display !== 'none') {
-            storiesNavIsOpen.value = false
-        }
-    },
-)
-
 function onKeyUp(event: KeyboardEvent) {
     if (event.key === 'Escape') search.value = ''
-    if (event.key === 's' && document.activeElement?.tagName !== 'INPUT') {
-        storiesNavIsOpen.value = !storiesNavIsOpen.value
-    }
-    // if (event.key === 't') toggleStoriesNav()
 }
 
 onMounted(() => {
@@ -97,7 +82,7 @@ const filteredItemList = computed(() => {
 </script>
 
 <template>
-    <div :class="[$style.root, storiesNavIsOpen && $style['root--open']]">
+    <div :class="[$style.root, storiesUIVisible && $style['root--open']]">
         <div :class="$style.home">
             <NuxtLink :to="storiesPath('/')" :class="$style.title"> Stories</NuxtLink>
         </div>

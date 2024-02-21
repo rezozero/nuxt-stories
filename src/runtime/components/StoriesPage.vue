@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import StoriesNav from './StoriesNav.vue'
-import { useHead } from '#imports'
+import { useHead, useStories } from '#imports'
+import { onBeforeUnmount, onMounted } from 'vue'
 
 // global styles
 useHead({
@@ -10,6 +11,22 @@ useHead({
             href: '/css/stories.css',
         },
     ],
+})
+
+const { storiesUIVisible } = useStories()
+
+function onKeyDown(event: KeyboardEvent) {
+    if (event.metaKey && event.key === '\\') {
+        storiesUIVisible.value = !storiesUIVisible.value
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', onKeyDown)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onKeyDown)
 })
 </script>
 
