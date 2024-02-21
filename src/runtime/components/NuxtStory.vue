@@ -38,7 +38,7 @@ const { storiesUIVisible } = useStories()
     top: 0;
     overflow-y: auto;
     width: 17vw;
-    min-width: 150px;
+    min-width: 200px;
     max-width: 400px;
     padding: 1.5rem 2rem;
     resize: horizontal;
@@ -48,5 +48,9 @@ const { storiesUIVisible } = useStories()
     border-left: 1px solid #e3e3e3ff;
     background-color: #f6f6f6ff;
     font-size: 14px;
+
+    @media (max-width: 768px) {
+        display: none;
+    }
 }
 </style>

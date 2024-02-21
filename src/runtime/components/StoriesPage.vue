@@ -13,6 +13,7 @@ useHead({
     ],
 })
 
+// UI visibility
 const { storiesUIVisible } = useStories()
 
 function onKeyDown(event: KeyboardEvent) {

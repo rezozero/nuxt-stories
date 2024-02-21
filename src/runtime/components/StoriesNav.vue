@@ -5,13 +5,14 @@ import { useRoute } from 'vue-router'
 import { useStories } from '../composables/use-stories'
 import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 
+const { storiesPath, storiesUIVisible } = useStories()
+
+// ITEM LIST
 const route = useRoute()
 
 const childRoutes = computed(() => {
     return route.matched[0]?.children
 })
-
-const { storiesPath, storiesUIVisible } = useStories()
 
 const itemList = computed(() => {
     const result: NavItem = {}
@@ -42,18 +43,7 @@ const itemList = computed(() => {
     return result
 })
 
-function onKeyUp(event: KeyboardEvent) {
-    if (event.key === 'Escape') search.value = ''
-}
-
-onMounted(() => {
-    window.addEventListener('keyup', onKeyUp)
-})
-
-onBeforeUnmount(() => {
-    window.removeEventListener('keyup', onKeyUp)
-})
-
+// SEARCH
 const search = ref('')
 
 function filterComponentByName(query: string) {
@@ -78,6 +68,18 @@ function filterComponentByName(query: string) {
 const filteredItemList = computed(() => {
     if (!search.value) return itemList.value
     else return filterComponentByName(search.value)
+})
+
+function onKeyUp(event: KeyboardEvent) {
+    if (event.key === 'Escape') search.value = ''
+}
+
+onMounted(() => {
+    window.addEventListener('keyup', onKeyUp)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keyup', onKeyUp)
 })
 </script>
 
