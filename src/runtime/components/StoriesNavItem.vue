@@ -59,7 +59,7 @@ watchEffect(() => {
 
 watch(isOpen, () => {
     if (isOpen.value) {
-        ;(link.value || folder.value)?.scrollIntoView()
+        ;(link.value || folder.value)?.scrollIntoView({ block: 'nearest' })
     }
 })
 </script>
