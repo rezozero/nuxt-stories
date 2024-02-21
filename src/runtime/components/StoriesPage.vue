@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import StoriesNav from './StoriesNav.vue'
-
-definePageMeta({
-    layout: 'stories',
-})
 </script>
 
 <template>
-    <div :class="$style.root">
-        <StoriesNav />
-        <div :class="$style['page-wrapper']">
-            <NuxtPage />
+    <NuxtLayout name="stories">
+        stories page
+        <div :class="$style.root">
+            <StoriesNav />
+            <div :class="$style['page-wrapper']">
+                <NuxtPage />
+            </div>
         </div>
-    </div>
+    </NuxtLayout>
 </template>
 
 <style module lang="scss">
