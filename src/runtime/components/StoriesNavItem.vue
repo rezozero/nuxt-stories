@@ -26,7 +26,7 @@ const props = defineProps({
 
 const route = useRoute()
 
-const isOpen = computed(() => props.open || route.path === props.item.to)
+const isOpen = computed(() => props.open)
 
 const isLink = computed(() => typeof props.item.to === 'string')
 
