@@ -83,11 +83,11 @@ watch(isOpen, () => {
 
 <style module lang="scss">
 .link {
+    margin-block: 0.1rem;
     padding: 0.15rem 0.3rem;
     text-decoration: none;
     color: inherit;
     border-radius: 0.3rem;
-    margin-bottom: 0.1rem;
 
     &:global(.router-link-exact-active) {
         background-color: yellow;
@@ -95,7 +95,7 @@ watch(isOpen, () => {
 }
 
 .button {
-    margin-bottom: 0.5em;
+    margin-block: 0.8rem 0.5rem;
     white-space: nowrap;
     background-color: transparent;
     border: none;
@@ -118,7 +118,7 @@ watch(isOpen, () => {
 
 .folder ul {
     padding-left: 1em;
-    margin-bottom: 0.5em;
+    margin-block: 0;
     margin-left: 1em;
     line-height: 1.5em;
     list-style-type: dot;

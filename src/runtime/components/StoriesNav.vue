@@ -22,7 +22,7 @@ const itemList = computed(() => {
 
         if (!filePath) return
 
-        const filePathParts = filePath.split('/')
+        const filePathParts = filePath.split('/').filter((value) => value !== '')
 
         let root = result
 
