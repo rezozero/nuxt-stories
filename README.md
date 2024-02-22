@@ -66,6 +66,12 @@ npm run test:watch
 npm run release
 ```
 
+## Caveats
+
+The app must use Nuxt layout.  
+Behind the scene, this module will use a layout `stories` (automatically injected) to display the stories.  
+At least, the app must have a `default` layout. That is how the layout can be switched by the module.
+
 <!-- Badges -->
 [npm-version-src]: https://img.shields.io/npm/v/@rezo-zero/nuxt-stories/latest.svg?style=flat&colorA=020420&colorB=00DC82
 [npm-version-href]: https://npmjs.com/package/@rezo-zero/nuxt-stories
