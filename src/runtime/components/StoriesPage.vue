@@ -43,8 +43,11 @@ onBeforeUnmount(() => {
 <style module lang="scss">
 .root {
     display: flex;
-    flex-wrap: wrap;
     font-family: Helvetica, sans-serif;
+
+    @media (max-width: 767px) {
+        flex-wrap: wrap;
+    }
 }
 
 .page-wrapper {
