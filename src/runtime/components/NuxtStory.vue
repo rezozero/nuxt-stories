@@ -9,31 +9,31 @@ const { storiesUIVisible } = useStories()
 </script>
 
 <template>
-    <div :class="[$style.root, layout && $style['root--layout-' + layout]]">
-        <div :class="$style.main">
+    <div :class="['nuxt-story', layout && 'nuxt-story--layout-' + layout]">
+        <div class="nuxt-story__main">
             <slot />
         </div>
-        <div v-if="$slots.aside" v-show="storiesUIVisible" :class="$style.aside">
+        <div v-if="$slots.aside" v-show="storiesUIVisible" class="nuxt-story__aside">
             <slot name="aside" />
         </div>
     </div>
 </template>
 
-<style lang="scss" module>
-.root {
+<style lang="scss">
+.nuxt-story {
     display: flex;
 }
 
-.main {
+.nuxt-story__main {
     flex-grow: 1;
     padding: 20px var(--story-main-padding, 2rem);
 
-    &--layout-fullscreen {
+    .nuxt-story--layout-fullscreen & {
         padding: var(--story-main-padding, 0);
     }
 }
 
-.aside {
+.nuxt-story__aside {
     position: sticky;
     top: 0;
     overflow-y: auto;
@@ -49,7 +49,7 @@ const { storiesUIVisible } = useStories()
     background-color: #f6f6f6ff;
     font-size: 14px;
 
-    @media (max-width: 768px) {
+    @media (max-width: 767px) {
         display: none;
     }
 }

@@ -8,34 +8,34 @@ defineProps<NuxtStoryVariantProps>()
 </script>
 
 <template>
-    <div :class="$style.root">
-        <div :class="$style.head">
-            <h2 v-if="title" :class="$style.title">{{ title }}</h2>
+    <div class="nuxt-story-variant">
+        <div class="nuxt-story-variant__head">
+            <h2 v-if="title" class="nuxt-story-variant__title">{{ title }}</h2>
         </div>
-        <div :class="[$style.main, mainClass]">
+        <div class="nuxt-story-variant__main">
             <slot />
         </div>
     </div>
 </template>
 
-<style lang="scss" module>
-.root {
+<style lang="scss">
+.nuxt-story-variant {
     padding-block: 2rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.head {
+.nuxt-story-variant__head {
     position: relative;
     flex-basis: 100%;
     margin-bottom: 1rem;
     z-index: 10;
 }
 
-.title {
+.nuxt-story-variant__title {
     text-decoration: underline;
 }
 
-.main {
+.nuxt-story-variant__main {
     display: flex;
     padding: 1rem 0.5rem;
     align-items: center;

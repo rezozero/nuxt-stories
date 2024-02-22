@@ -90,23 +90,23 @@ watch(route, () => {
 </script>
 
 <template>
-    <div v-show="storiesUIVisible" :class="[$style.root, isOpen && $style['root--open']]">
-        <div :class="$style.top">
-            <NuxtLink :to="storiesPath('/')" :class="$style.title"> Stories</NuxtLink>
-            <button :class="$style.toggle" @click="isOpen = !isOpen"></button>
+    <div v-show="storiesUIVisible" :class="['stories-nav', isOpen && 'stories-nav--open']">
+        <div class="stories-nav__head">
+            <NuxtLink :to="storiesPath('/')" class="stories-nav__title"> Stories</NuxtLink>
+            <button class="stories-nav__toggle" @click="isOpen = !isOpen"></button>
         </div>
-        <div :class="$style.main">
-            <div :class="$style.search">
-                <input v-model="search" type="text" :class="$style.search__input" />
-                <button :class="$style.search__clear" @click="search = ''" />
+        <div class="stories-nav__main">
+            <div class="stories-nav__search">
+                <input v-model="search" type="text" class="stories-nav__search__input" />
+                <button class="stories-nav__search__clear" @click="search = ''" />
             </div>
             <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" />
         </div>
     </div>
 </template>
 
-<style module lang="scss">
-.root {
+<style lang="scss">
+.stories-nav {
     position: sticky;
     z-index: 1000;
     top: 0;
@@ -135,7 +135,7 @@ watch(route, () => {
     }
 }
 
-.top {
+.stories-nav__head {
     position: sticky;
     top: 0;
     display: flex;
@@ -149,13 +149,13 @@ watch(route, () => {
     }
 }
 
-.title {
+.stories-nav__title {
     font-size: 1.3rem;
     text-decoration: none;
     color: inherit;
 }
 
-.toggle {
+.stories-nav__toggle {
     display: flex;
     width: 2.5rem;
     height: 2.5rem;
@@ -180,16 +180,16 @@ watch(route, () => {
         background-color: currentColor;
     }
 
-    .root--open &::before {
+    .stories-nav--open &::before {
         transform: translateY(2px) rotate(45deg);
     }
 
-    .root--open &::after {
+    .stories-nav--open &::after {
         transform: translateY(-2px) rotate(-45deg);
     }
 }
 
-.main {
+.stories-nav__main {
     display: none;
     margin-top: 1em;
     padding: 1rem 1rem 2rem;
@@ -204,7 +204,7 @@ watch(route, () => {
     }
 }
 
-.search {
+.stories-nav__search {
     position: relative;
     display: flex;
     align-items: center;
@@ -213,14 +213,14 @@ watch(route, () => {
     background-color: rgba(black, 0.04);
 }
 
-.search__input {
+.stories-nav__search__input {
     width: 90%;
     border: none;
     background-color: transparent;
     padding: 0.5em 0.2rem;
 }
 
-.search__clear {
+.stories-nav__search__clear {
     all: unset;
     position: absolute;
     right: 10px;

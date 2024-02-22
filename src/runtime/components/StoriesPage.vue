@@ -32,16 +32,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div :class="$style.root">
+    <div class="stories-page">
         <StoriesNav />
-        <div :class="$style['page-wrapper']">
+        <div class="stories-page__main">
             <NuxtPage />
         </div>
     </div>
 </template>
 
-<style module lang="scss">
-.root {
+<style lang="scss">
+.stories-page {
     display: flex;
     font-family: Helvetica, sans-serif;
 
@@ -50,7 +50,7 @@ onBeforeUnmount(() => {
     }
 }
 
-.page-wrapper {
+.stories-page__main {
     flex-grow: 1;
 }
 </style>

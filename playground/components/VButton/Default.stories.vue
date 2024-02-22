@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-    <NuxtStory>
+    <NuxtStory :class="$style.root">
         <NuxtStoryVariant title="Default">
             <VButton>Test</VButton>
         </NuxtStoryVariant>
@@ -11,4 +11,8 @@
     </NuxtStory>
 </template>
 
-<style module lang="scss"></style>
+<style module lang="scss">
+.root :global(.nuxt-story-variant) {
+    // background-color: red;
+}
+</style>

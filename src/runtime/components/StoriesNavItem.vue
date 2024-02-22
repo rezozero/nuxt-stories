@@ -67,13 +67,13 @@ watch(isOpen, () => {
 </script>
 
 <template>
-    <NuxtLink v-if="isLink" ref="link" :to="item.to" :class="$style.link">
+    <NuxtLink v-if="isLink" ref="link" :to="item.to" class="stories-nav-item__link">
         {{ item.label }}
     </NuxtLink>
-    <div v-else ref="folder" :class="[$style.folder, isOpen && $style['folder--active']]">
-        <button :class="$style.button" @click="isOpen = !isOpen">
+    <div v-else ref="folder" :class="['stories-nav-item__folder', isOpen && 'stories-nav-item__folder--open']">
+        <button class="stories-nav-item__folder__button" @click="isOpen = !isOpen">
             <span>{{ label }}</span>
-            <span :class="$style.icon"></span>
+            <span class="stories-nav-item__folder__icon"></span>
         </button>
         <ul v-if="isOpen">
             <li v-for="(childItem, key) in item" :key="key">
@@ -83,20 +83,20 @@ watch(isOpen, () => {
     </div>
 </template>
 
-<style module lang="scss">
-.link {
+<style lang="scss">
+.stories-nav-item__link {
     margin-block: 0.1rem;
     padding: 0.15rem 0.3rem;
     text-decoration: none;
     color: inherit;
     border-radius: 0.3rem;
 
-    &:global(.router-link-exact-active) {
+    &.router-link-exact-active {
         background-color: yellow;
     }
 }
 
-.button {
+.stories-nav-item__folder__button {
     display: flex;
     align-items: center;
     margin-block: 0.8rem 0.5rem;
@@ -106,7 +106,7 @@ watch(isOpen, () => {
     border: none;
 }
 
-.icon {
+.stories-nav-item__folder__icon {
     position: relative;
     display: inline-flex;
     width: 1.2rem;
@@ -143,12 +143,12 @@ watch(isOpen, () => {
         margin-left: -1px;
     }
 
-    .folder--active &::after {
+    .stories-nav-item__folder--active &::after {
         display: none;
     }
 }
 
-.folder ul {
+.stories-nav-item__folder ul {
     padding-left: 1em;
     margin-block: 0;
     margin-left: 1em;
