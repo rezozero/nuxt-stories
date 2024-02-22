@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.9
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.8...v0.1.9)
+
+### 🚀 Enhancements
+
+- Use global CSS classes ([6a2e32b](https://github.com/rezozero/nuxt-stories/commit/6a2e32b))
+
+### 🎨 Styles
+
+- **page:** Flex wrap only on small screen ([b478908](https://github.com/rezozero/nuxt-stories/commit/b478908))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.8
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.7...v0.1.8)
