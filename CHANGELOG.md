@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.11
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.10...v0.1.11)
+
+### 🩹 Fixes
+
+- Layer files discovering ([4863363](https://github.com/rezozero/nuxt-stories/commit/4863363))
+
+### 📦 Build
+
+- Do not require multi word component name ([880d260](https://github.com/rezozero/nuxt-stories/commit/880d260))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.10
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.9...v0.1.10)
