@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.10
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.9...v0.1.10)
+
+### 🚀 Enhancements
+
+- Handle layers ([044ffac](https://github.com/rezozero/nuxt-stories/commit/044ffac))
+
+### 📖 Documentation
+
+- Add caveats section to the readme ([499ffcf](https://github.com/rezozero/nuxt-stories/commit/499ffcf))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.9
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.8...v0.1.9)
