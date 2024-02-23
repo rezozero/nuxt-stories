@@ -84,14 +84,24 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
         // PAGES
         extendPages(async (pages) => {
+            // scan project files
             const files = await resolveFiles(nuxt.options.rootDir, pattern)
 
+            // scan layers files
+            const layersFiles = await Promise.all(
+                nuxt.options._layers.map((layer) => resolveFiles(layer.config.rootDir, pattern)),
+            )
+
+            files.concat(layersFiles.flat())
+
+            // generate child routes
             files.forEach((file) => {
                 const fileRoute = getFileRoute(file)
 
                 route.children!.push(fileRoute)
             })
 
+            // add route
             pages.push(route)
         })
 
