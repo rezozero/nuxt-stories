@@ -44,10 +44,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             children: [] as NuxtPage[],
         }
 
-        const getFileRoute = (file: string): NuxtPage => {
+        const getFileRoute = (file: string, rootDir: string): NuxtPage => {
             const filePath = withoutTrailingSlash(
                 file
-                    .replace(nuxt.options.rootDir, '')
+                    .replace(rootDir, '')
                     .split('/')
                     .filter((pathFragment) => !root.includes(pathFragment))
                     .join('/')
@@ -84,22 +84,18 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
         // PAGES
         extendPages(async (pages) => {
-            // scan project files
-            const files = await resolveFiles(nuxt.options.rootDir, pattern)
-
-            // scan layers files
-            const layersFiles = await Promise.all(
-                nuxt.options._layers.map((layer) => resolveFiles(layer.config.rootDir, pattern)),
-            )
-
-            files.concat(layersFiles.flat())
-
             // generate child routes
-            files.forEach((file) => {
-                const fileRoute = getFileRoute(file)
+            await Promise.all(
+                nuxt.options._layers.map(async (layer) => {
+                    const files = await resolveFiles(layer.config.rootDir, pattern)
 
-                route.children!.push(fileRoute)
-            })
+                    files.flat().forEach((file) => {
+                        const fileRoute = getFileRoute(file, layer.config.rootDir)
+
+                        route.children!.push(fileRoute)
+                    })
+                }),
+            )
 
             // add route
             pages.push(route)
