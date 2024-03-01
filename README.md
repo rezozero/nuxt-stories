@@ -40,6 +40,27 @@ export default defineNuxtConfig({
 
 That's it! You can now use Nuxt stories in your Nuxt app ✨
 
+## Options
+
+### `route`
+- type: `{ name?: string; file?: string; path?: string; }`
+- default: 
+```
+{ 
+    name: 'stories', 
+    file: './runtime/components/StoriesPage.vue', 
+    path: '/_stories' 
+}
+```
+
+### `root`
+- type: `string | string[]`
+- default: `'**/*.stories.vue'`
+
+### `pattern`
+- type: `string | string[]`
+- default: `['components', 'stories']`
+
 ## Development
 
 ```bash
