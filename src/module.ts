@@ -12,6 +12,7 @@ import type { NuxtPage } from '@nuxt/schema'
 import { withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
 import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
+import { existsSync } from 'node:fs'
 
 export interface NuxtStoriesOptions {
     route?: NuxtPage
@@ -118,6 +119,17 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // NITRO CONFIG
         nuxt.hook('nitro:config', async (nitroConfig) => {
             nitroConfig.publicAssets ||= []
+
+            // If stories directory exists, add it to public assets
+            if (existsSync('./server/stories')) {
+                nitroConfig.publicAssets.push({
+                    dir: 'stories',
+                    baseURL: 'stories',
+                    maxAge: 0,
+                })
+            }
+
+            // Add runtime directory
             nitroConfig.publicAssets.push({
                 dir: resolver.resolve('./runtime/public'),
                 maxAge: 60 * 60 * 24 * 365, // 1 year
