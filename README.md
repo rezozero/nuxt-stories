@@ -65,9 +65,7 @@ That's it! You can now use Nuxt stories in your Nuxt app ✨
 
 You can add assets to your stories by adding a `stories` folder in the `/server` directory.  
 All the assets in this folder will be available as public assets with the prefix `/stories`.  
-You can use it like the `/public` folder in the Nuxt app, but the folder will be available only when the stories are available too.  
-
-```bash
+You can use it like the `/public` folder in the Nuxt app, but the folder will be available only when the stories are available too.
 
 ## Development
 
