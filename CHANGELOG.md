@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.12
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.11...v0.1.12)
+
+### 🚀 Enhancements
+
+- Add stories public assets directory ([b2fdf8e](https://github.com/rezozero/nuxt-stories/commit/b2fdf8e))
+
+### 📖 Documentation
+
+- Improve README ([a0c5aac](https://github.com/rezozero/nuxt-stories/commit/a0c5aac))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.11
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.10...v0.1.11)
