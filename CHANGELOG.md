@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v0.1.13
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.12...v0.1.13)
+
+### 🩹 Fixes
+
+- Do not test if stories/ folder exists ([404cd2b](https://github.com/rezozero/nuxt-stories/commit/404cd2b))
+
+### 📖 Documentation
+
+- Add public assets section ([b3d035d](https://github.com/rezozero/nuxt-stories/commit/b3d035d))
+
+### 🏡 Chore
+
+- Fix README ([3cd2ae8](https://github.com/rezozero/nuxt-stories/commit/3cd2ae8))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.12
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.11...v0.1.12)
