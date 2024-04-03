@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.14
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.13...v0.1.14)
+
+### 🚀 Enhancements
+
+- Hide UI with slash key ([ca4d470](https://github.com/rezozero/nuxt-stories/commit/ca4d470))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.13
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.12...v0.1.13)
