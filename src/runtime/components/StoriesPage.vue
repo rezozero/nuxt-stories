@@ -17,7 +17,7 @@ useHead({
 const { storiesUIVisible } = useStories()
 
 function onKeyDown(event: KeyboardEvent) {
-    if (event.metaKey && event.key === '\\') {
+    if (event.metaKey && (event.key === '\\' || event.key === '/')) {
         storiesUIVisible.value = !storiesUIVisible.value
     }
 }
