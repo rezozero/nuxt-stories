@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.15
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.14...v0.1.15)
+
+### 🩹 Fixes
+
+- Path join on Windows ([5385cc2](https://github.com/rezozero/nuxt-stories/commit/5385cc2))
+
+### ❤️ Contributors
+
+- Manuel Odelain <manuel@rezo-zero.com>
+
 ## v0.1.14
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.13...v0.1.14)
