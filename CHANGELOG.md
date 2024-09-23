@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.16
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.15...v0.1.16)
+
+### 🩹 Fixes
+
+- **StoriesNav:** Fixed css rules to display nav main when we clicked on burger menu ([2156ae9](https://github.com/rezozero/nuxt-stories/commit/2156ae9))
+
+### ❤️ Contributors
+
+- Julientison <julientison@rezo-zero.com>
+
 ## v0.1.15
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.14...v0.1.15)
