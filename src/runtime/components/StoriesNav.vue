@@ -137,6 +137,7 @@ watch(route, () => {
 
 .stories-nav__head {
     position: sticky;
+    z-index: 1;
     top: 0;
     display: flex;
     align-items: center;
@@ -199,7 +200,7 @@ watch(route, () => {
         padding-inline: 0;
     }
 
-    .root--open & {
+    .stories-nav--open & {
         display: block;
     }
 }
