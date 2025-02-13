@@ -43,7 +43,6 @@ onBeforeUnmount(() => {
 <style lang="scss">
 .stories-page {
     display: flex;
-    font-family: Helvetica, sans-serif;
 
     @media (max-width: 767px) {
         flex-wrap: wrap;

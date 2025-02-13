@@ -114,6 +114,7 @@ watch(route, () => {
     flex-shrink: 0;
     border-right: 1px solid #e3e3e3ff;
     background-color: #f6f6f6ff;
+    font-family: Helvetica, sans-serif;
     font-size: 14px;
     overflow-y: auto;
 

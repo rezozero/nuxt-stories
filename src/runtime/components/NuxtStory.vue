@@ -47,6 +47,7 @@ const { storiesUIVisible } = useStories()
     flex-shrink: 0;
     border-left: 1px solid #e3e3e3ff;
     background-color: #f6f6f6ff;
+    font-family: Helvetica, sans-serif;
     font-size: 14px;
 
     @media (max-width: 767px) {

@@ -29,6 +29,7 @@ defineProps<NuxtStoryVariantProps>()
     flex-basis: 100%;
     margin-bottom: 1rem;
     z-index: 10;
+    font-family: Helvetica, sans-serif;
 }
 
 .nuxt-story-variant__title {
