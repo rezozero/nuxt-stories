@@ -2,9 +2,7 @@
 
 <template>
     <NuxtStory>
-        <template #aside>
-            aside content
-        </template>
+        <template #aside> aside content </template>
         <div :class="$style.container">
             <div v-for="index in 10" :key="index" :class="$style.card"></div>
         </div>
