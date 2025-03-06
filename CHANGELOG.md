@@ -1,6 +1,25 @@
 # Changelog
 
 
+## v0.1.18
+
+[compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.17...v0.1.18)
+
+### 🏡 Chore
+
+- Update scc var naming ([152fa52](https://github.com/rezozero/nuxt-stories/commit/152fa52))
+- Eslint fix ([6a154c1](https://github.com/rezozero/nuxt-stories/commit/6a154c1))
+
+### 🎨 Styles
+
+- Use grid instead flex to set layout items ([7e3a7ed](https://github.com/rezozero/nuxt-stories/commit/7e3a7ed))
+- **StoriesNavItem:** Fix selector name ([1a93bde](https://github.com/rezozero/nuxt-stories/commit/1a93bde))
+
+### ❤️ Contributors
+
+- Manuel Odelain 
+- Timothe <timothe@rezo-zero.com>
+
 ## v0.1.17
 
 [compare changes](https://github.com/rezozero/nuxt-stories/compare/v0.1.15...v0.1.17)
