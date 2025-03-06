@@ -34,7 +34,7 @@ const { storiesUIVisible } = useStories()
 .nuxt-story__main {
     flex-grow: 1;
     padding: 20px var(--story-main-padding, 2rem);
-    width: var(--nuxt-story-main-width, 100%);
+    width: var(--story-main-width, 100%);
 
     .nuxt-story--layout-fullscreen & {
         padding: var(--story-main-padding, 0);
