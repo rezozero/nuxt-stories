@@ -34,22 +34,17 @@ onBeforeUnmount(() => {
 <template>
     <div class="stories-page">
         <StoriesNav />
-        <div class="stories-page__main">
-            <NuxtPage />
-        </div>
+        <NuxtPage />
     </div>
 </template>
 
 <style lang="scss">
 .stories-page {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
 
-    @media (max-width: 767px) {
-        flex-wrap: wrap;
+    @media (min-width: 767px) {
+        grid-template-columns: auto minmax(0, 1fr);
     }
-}
-
-.stories-page__main {
-    flex-grow: 1;
 }
 </style>
