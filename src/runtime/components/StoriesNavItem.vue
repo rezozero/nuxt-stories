@@ -143,7 +143,7 @@ watch(isOpen, () => {
         margin-left: -1px;
     }
 
-    .stories-nav-item__folder--active &::after {
+    .stories-nav-item__folder--open &::after {
         display: none;
     }
 }
