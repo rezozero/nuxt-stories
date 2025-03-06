@@ -3,6 +3,8 @@ import { useStories } from '../composables/use-stories'
 
 defineProps<{
     layout?: 'fullscreen' | 'default'
+    mainClass?: string
+    asideClass?: string
 }>()
 
 const { storiesUIVisible } = useStories()
@@ -21,12 +23,18 @@ const { storiesUIVisible } = useStories()
 
 <style lang="scss">
 .nuxt-story {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    @media (min-width: 767px) {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
 }
 
 .nuxt-story__main {
     flex-grow: 1;
     padding: 20px var(--story-main-padding, 2rem);
+    width: var(--nuxt-story-main-width, 100%);
 
     .nuxt-story--layout-fullscreen & {
         padding: var(--story-main-padding, 0);
@@ -34,24 +42,25 @@ const { storiesUIVisible } = useStories()
 }
 
 .nuxt-story__aside {
-    position: sticky;
-    top: 0;
     overflow-y: auto;
-    width: 17vw;
-    min-width: 200px;
-    max-width: 400px;
+    max-height: 30vh;
     padding: 1.5rem 2rem;
-    resize: horizontal;
-    z-index: 1000;
-    height: 100vh;
-    flex-shrink: 0;
     border-left: 1px solid #e3e3e3ff;
     background-color: #f6f6f6ff;
     font-family: Helvetica, sans-serif;
     font-size: 14px;
+    grid-row: 1;
 
-    @media (max-width: 767px) {
-        display: none;
+    @media (min-width: 767px) {
+        position: sticky;
+        z-index: 1000;
+        top: 0;
+        grid-row: initial;
+        max-height: initial;
+        min-width: 200px;
+        max-width: 400px;
+        width: 17vw;
+        height: 100vh;
     }
 }
 </style>
