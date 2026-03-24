@@ -3,10 +3,9 @@
   "name": "stories-playground",
   "type": "module",
   "scripts": {
-    "dev": "nuxt dev",
-    "build": "nuxt build",
-    "generate": "nuxt generate",
-    "stories": "nuxt dev stories --port 6006"
+    "dev": "nuxi dev",
+    "build": "nuxi build",
+    "generate": "nuxi generate"
   },
   "dependencies": {
     "nuxt": "^4.4.2"

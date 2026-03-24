@@ -3,10 +3,9 @@ import {
     createResolver,
     resolveFiles,
     addComponent,
-    addLayout,
     addImportsDir,
     extendPages,
-} from '@nuxt/kit'
+} from '@nuxt/kit' 
 import type { NuxtPage } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
@@ -23,24 +22,41 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         name: 'nuxt-stories',
         configKey: 'stories',
     },
-    // Default configuration options of the Nuxt module
     defaults: {},
     async setup(options, nuxt) {
-        if (!nuxt.options.dev && !nuxt.options._prepare && process.env.NUXT_STORIES !== '1') return
-
         const resolver = createResolver(import.meta.url)
         const pattern = options.pattern || '**/*.stories.vue'
         const root = options.root || ['components', 'stories']
-        const routeBasePath = joinURL('/', options.route?.path || '_stories')
-        const route: NuxtPage = {
+        const routeBasePath = joinURL('/', options.route?.path || '')
+        const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
+
+        // Expose base paths so runtime composables can compute URLs dynamically
+        nuxt.options.runtimeConfig.public.nuxtStories = {
+            routeBasePath,
+            frameBasePath,
+        }
+
+        // Child route arrays — shared by both shell and frame parents
+        const shellChildren: NuxtPage[] = []
+        const frameChildren: NuxtPage[] = []
+
+        // Shell route: the full stories UI (nav + iframe + controls)
+        const shellRoute: NuxtPage = {
             name: 'stories',
             file: resolver.resolve('./runtime/components/StoriesPage.vue'),
             ...options.route,
-            meta: {
-                layout: 'stories',
-            },
+            meta: { layout: false },
             path: joinURL(routeBasePath, '/:story*'),
-            children: [] as NuxtPage[],
+            children: shellChildren,
+        }
+
+        // Frame route: bare renderer used inside the iframe
+        const frameRoute: NuxtPage = {
+            name: 'stories-frame',
+            file: resolver.resolve('./runtime/components/StoryFramePage.vue'),
+            meta: { layout: false },
+            path: joinURL(frameBasePath, '/:story*'),
+            children: frameChildren,
         }
 
         const getFileRoute = (file: string, rootDir: string): NuxtPage => {
@@ -57,9 +73,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             return {
                 name: routePath,
                 path: withoutLeadingSlash(routePath),
-                meta: {
-                    filePath,
-                },
+                meta: { filePath },
                 file,
             }
         }
@@ -75,61 +89,73 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             filePath: resolver.resolve('./runtime/components/NuxtStoryVariant.vue'),
         })
 
-        // LAYOUTS
-        addLayout(resolver.resolve('./runtime/layouts/stories.vue'), 'stories')
-
         // IMPORTS
         addImportsDir(resolver.resolve('./runtime/composables'))
 
         // PAGES
         extendPages(async (pages) => {
-            // generate child routes
+            const storyPaths: string[] = []
+
             await Promise.all(
                 nuxt.options._layers.map(async (layer) => {
                     const files = await resolveFiles(layer.config.rootDir, pattern)
 
                     files.flat().forEach((file) => {
                         const fileRoute = getFileRoute(file, layer.config.rootDir)
+                        const name = withoutLeadingSlash(fileRoute.name as string)
 
-                        route.children!.push(fileRoute)
+                        // Shell children: same file, prefixed name (for nav enumeration)
+                        shellChildren.push({ ...fileRoute, name: 'shell-' + name })
+                        // Frame children: same file, prefixed name (for actual rendering)
+                        frameChildren.push({ ...fileRoute, name: 'frame-' + name })
+
+                        storyPaths.push(fileRoute.path as string)
                     })
                 }),
             )
 
-            // add route
-            pages.push(route)
+            pages.push(shellRoute, frameRoute)
+
+            // Register all story paths for static generation (nuxi generate)
+            nuxt.options.nitro.prerender ||= {}
+            nuxt.options.nitro.prerender.routes = [
+                ...(nuxt.options.nitro.prerender.routes as string[] ?? []),
+                ...storyPaths.flatMap((p) => [joinURL(routeBasePath, p), joinURL(frameBasePath, p)]),
+            ]
         })
 
-        // WATCH
-        nuxt.hook('builder:watch', (event, path) => {
-            if (
-                typeof pattern === 'string'
-                    ? !minimatch(path, pattern)
-                    : !pattern.some((patternValue) => minimatch(path, patternValue))
-            )
-                return
+        // WATCH (dev only)
+        if (nuxt.options.dev) {
+            nuxt.hook('builder:watch', (event, path) => {
+                if (
+                    typeof pattern === 'string'
+                        ? !minimatch(path, pattern)
+                        : !pattern.some((patternValue) => minimatch(path, patternValue))
+                )
+                    return
 
-            if (event === 'add' || event === 'unlink') {
-                nuxt.callHook('restart')
-            }
-        })
+                if (event === 'add' || event === 'unlink') {
+                    nuxt.callHook('restart')
+                }
+            })
+        }
 
         // NITRO CONFIG
-        nuxt.hook('nitro:config', async (nitroConfig) => {
-            nitroConfig.publicAssets ||= []
+        // nuxt.hook('nitro:config', async (nitroConfig) => {
+        //     nitroConfig.publicAssets ||= []
 
-            // If stories directory exists, add it to public assets
-            nitroConfig.publicAssets.push({
-                dir: 'stories',
-                baseURL: 'stories',
-                maxAge: 0,
-            })
+        //     // Serve <rootDir>/stories/ at /stories/ (story images, etc.)
+        //     nitroConfig.publicAssets.push({
+        //         dir: 'stories',
+        //         baseURL: 'stories',
+        //         maxAge: 0,
+        //     })
 
-            // Add runtime directory
-            nitroConfig.publicAssets.push({
-                dir: resolver.resolve('./runtime/public'),
-                maxAge: 60 * 60 * 24 * 365, // 1 year
-            })
-        })
+        //     // Serve the module's public assets (stories.css, etc.)
+        //     nitroConfig.publicAssets.push({
+        //         dir: resolver.resolve('./runtime/public'),
+        //         maxAge: 60 * 60 * 24 * 365,
+        //     })
+        // })
     },
 })

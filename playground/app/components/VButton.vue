@@ -13,7 +13,7 @@ defineProps({
 <style module lang="scss">
 .root {
     padding: 0.6rem;
-    background-color: grey;
+    background-color: red;
     border-radius: 4px;
     color: #fff;
 

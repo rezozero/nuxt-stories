@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { useStories } from '../composables/use-stories'
-
 defineProps<{
     layout?: 'fullscreen' | 'default'
     mainClass?: string
     asideClass?: string
 }>()
-
-const { storiesUIVisible } = useStories()
 </script>
 
 <template>
@@ -15,7 +11,7 @@ const { storiesUIVisible } = useStories()
         <div class="nuxt-story__main">
             <slot />
         </div>
-        <div v-if="$slots.aside" v-show="storiesUIVisible" class="nuxt-story__aside">
+        <div v-if="$slots.aside" class="nuxt-story__aside">
             <slot name="aside" />
         </div>
     </div>
