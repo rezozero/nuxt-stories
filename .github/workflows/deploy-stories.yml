@@ -1,0 +1,96 @@
+name: Deploy Stories to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time; skip queued runs but never cancel an in-progress one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # ── Module ──────────────────────────────────────────────────────────────
+
+      - name: Install root dependencies
+        run: pnpm install
+
+      - name: Build module
+        run: pnpm build
+
+      # ── Frame app (playground/) ─────────────────────────────────────────────
+      # Generates the component renderer routes at /-frame/**
+
+      - name: Install frame app dependencies
+        working-directory: playground
+        run: pnpm install
+
+      - name: Generate frame app
+        working-directory: playground
+        run: pnpm nuxi generate
+        env:
+          NUXT_STORIES_MODE: frame
+          # Set to your GitHub Pages base path, e.g. /nuxt-stories/ for
+          # https://rezozero.github.io/nuxt-stories/
+          NUXT_APP_BASE_URL: /nuxt-stories/
+
+      # ── Shell app (playground/stories/) ────────────────────────────────────
+      # Generates the stories UI (nav, iframe wrapper)
+
+      - name: Install shell app dependencies
+        working-directory: playground/stories
+        run: pnpm install
+
+      - name: Generate shell app
+        working-directory: playground/stories
+        run: pnpm nuxi generate
+        env:
+          NUXT_APP_BASE_URL: /nuxt-stories/
+
+      # ── Merge outputs ───────────────────────────────────────────────────────
+      # Copy the frame app's /-frame/** output into the shell's output so both
+      # are served from the same origin (required for same-origin postMessage).
+
+      - name: Merge frame output into shell output
+        run: |
+          cp -r playground/.output/public/-frame playground/stories/.output/public/-frame
+
+      # GitHub Pages ignores folders prefixed with _ by default; .nojekyll disables this.
+      - name: Add .nojekyll
+        run: touch playground/stories/.output/public/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playground/stories/.output/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

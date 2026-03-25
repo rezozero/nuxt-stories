@@ -80,8 +80,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const routeBasePath = joinURL('/', options.route?.path || '')
         const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
 
-        // In shell mode the iframe points to an absolute URL on the frame server
-        const frameBaseUrl = mode === 'shell'
+        // In shell mode the iframe points to an absolute URL on the frame server.
+        // During static generation (non-dev) we use null so the iframe resolves
+        // relative to the same origin and a merged static output works correctly.
+        const frameBaseUrl = mode === 'shell' && nuxt.options.dev
             ? options.frameCwd
                 ? `http://localhost:${options.framePort ?? 3000}`
                 : undefined
@@ -103,6 +105,13 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             frameBasePath,
             frameBaseUrl: frameBaseUrl ?? null,
         } as { routeBasePath: string; frameBasePath: string; frameBaseUrl: string | null }
+
+        // Frame mode: the app has no root page, so disable link-crawling and only
+        // prerender the explicitly registered frame routes (avoids a 404 on '/').
+        if (mode === 'frame') {
+            nuxt.options.nitro.prerender ||= {}
+            nuxt.options.nitro.prerender.crawlLinks = false
+        }
 
         // SPAWN FRAME PROCESS (shell + dev mode only)
         if (mode === 'shell' && nuxt.options.dev && options.frameCwd) {
@@ -216,6 +225,8 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 name: 'NuxtStoryVariant',
                 filePath: resolver.resolve('./runtime/components/NuxtStoryVariant.vue'),
             })
+
+            
         }
 
         // IMPORTS

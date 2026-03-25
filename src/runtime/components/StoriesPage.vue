@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useHead } from '#imports'
+import { useHead, useRuntimeConfig } from '#imports'
+import { joinURL } from 'ufo'
 import { useStories } from '../composables/use-stories'
 import StoryControlsPanel from './StoryControlsPanel.vue'
 import type { ControlSchema } from '../composables/use-story-controls'
@@ -17,8 +18,9 @@ interface TreeNode {
 }
 
 // Shell-level styles only (not loaded in the frame)
+const { app } = useRuntimeConfig()
 useHead({
-    link: [{ rel: 'stylesheet', href: '/css/stories.css' }],
+    link: [{ rel: 'stylesheet', href: joinURL(app.baseURL, 'css/stories.css') }],
 })
 
 const route = useRoute()
