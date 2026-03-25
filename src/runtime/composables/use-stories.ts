@@ -20,7 +20,18 @@ export function useStories() {
     /** Convert a shell URL to its frame counterpart.
      *  When frameBaseUrl is set (2-process mode) the result is an absolute URL. */
     const frameUrl = (path: string) => {
-        const framePath = joinURL(frameBasePath, path.slice(routeBasePath.length) || '/')
+        const routeRelative = path.startsWith(routeBasePath)
+            ? path.slice(routeBasePath.length)
+            : path
+        const normalizedRelative = routeRelative.startsWith('/')
+            ? routeRelative
+            : `/${routeRelative}`
+        const withoutFramePrefix = normalizedRelative === frameBasePath
+            ? '/'
+            : normalizedRelative.startsWith(`${frameBasePath}/`)
+                ? normalizedRelative.slice(frameBasePath.length)
+                : normalizedRelative
+        const framePath = joinURL(frameBasePath, withoutFramePrefix || '/')
         return frameBaseUrl ? frameBaseUrl + framePath : framePath
     }
 

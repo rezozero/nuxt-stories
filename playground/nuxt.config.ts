@@ -6,7 +6,9 @@ const currentDir = dirname(fileURLToPath(import.meta.url))
 export default defineNuxtConfig({
     modules: ['../src/module'],
     stories: {
-        mode: 'frame',
+        mode: 'shell',
+        frameCwd: '.',
+        framePort: 3000,
     },
     css: [
         join(currentDir, './app/assets/css/main.css')

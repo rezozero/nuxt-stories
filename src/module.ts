@@ -1,8 +1,10 @@
 import path from 'path'
+import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
 
 // Module-level guard: only one frame process at a time across Nuxt restarts
 let _frameProcess: ChildProcess | null = null
+
 import {
     defineNuxtModule,
     createResolver,
@@ -10,9 +12,7 @@ import {
     addComponent,
     addImportsDir,
     addLayout,
-    addPlugin,
     extendPages,
-    resolveModule,
 } from '@nuxt/kit' 
 import type { NuxtPage } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
@@ -37,6 +37,12 @@ export interface NuxtStoriesOptions {
      * (shell mode) Port for the frame dev server. Default: 3000.
      */
     framePort?: number
+    /**
+     * (shell mode) Additional root directories to scan for story files.
+     * Useful in 2-process mode where the frame extends only the app srcDir
+     * but stories live in the shell's project root.
+     */
+    storyRoots?: string[]
     route?: NuxtPage
     root?: string | string[]
     pattern?: string | string[]
@@ -75,18 +81,19 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const root = options.root || ['components', 'stories']
 
         // Allow the spawned frame process to override mode via env var
-        const mode = (process.env.NUXT_STORIES_MODE as NuxtStoriesOptions['mode']) || options.mode || 'all'
+        const mode = options.mode || 'all'
+
+        // Always enable the pages module – the module adds routes via extendPages
+        // regardless of whether an app/pages/ directory exists.
+        nuxt.options.pages = true
 
         const routeBasePath = joinURL('/', options.route?.path || '')
         const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
 
-        // In shell mode the iframe points to an absolute URL on the frame server.
-        // During static generation (non-dev) we use null so the iframe resolves
-        // relative to the same origin and a merged static output works correctly.
-        const frameBaseUrl = mode === 'shell' && nuxt.options.dev
-            ? options.frameCwd
-                ? `http://localhost:${options.framePort ?? 3000}`
-                : undefined
+        // In shell mode with a separate frame process the iframe points to the frame server URL.
+        // When frameCwd is not set or in other modes the iframe uses same-origin routes.
+        const frameBaseUrl = mode === 'shell' && nuxt.options.dev && options.frameCwd
+            ? `http://localhost:${options.framePort ?? 3000}`
             : undefined
 
         // // Alias primevue to the module's own node_modules so runtime components
@@ -113,34 +120,74 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             nuxt.options.nitro.prerender.crawlLinks = false
         }
 
-        // SPAWN FRAME PROCESS (shell + dev mode only)
+        // In shell mode without frameCwd the frame runs same-origin, but the shell still
+        // must not load the app's CSS — strip it here so it doesn't pollute the shell UI.
+        // (When frameCwd is set, the CSS is stripped inside the spawn block below after
+        //  being forwarded to the frame config.)
+        if (mode === 'shell' && (!nuxt.options.dev || !options.frameCwd)) {
+            nuxt.options.css = []
+        }
+
+        // SPAWN FRAME PROCESS (shell + dev mode only, when frameCwd is provided)
+        // Instead of requiring the frame app to install the module, the shell generates
+        // a temporary nuxt.config that extends the frame app and adds the module in frame mode.
         if (mode === 'shell' && nuxt.options.dev && options.frameCwd) {
             const frameAbsCwd = path.resolve(nuxt.options.rootDir, options.frameCwd)
+            const frameTmpDir = path.join(frameAbsCwd, '.nuxt-stories')
+            const frameTmpConfig = path.join(frameTmpDir, 'nuxt.config.mjs')
             const framePort = options.framePort ?? 3000
+            // Use the actual running module file path (works in both stub and built mode)
+            const moduleEntry = new URL(import.meta.url).pathname
 
-            // Kill any leftover frame process from a previous Nuxt restart
+            // Write a frame config that points srcDir directly at the app source dir.
+            // Using srcDir+rootDir (not extends) avoids the Nuxt 4 double-'app' layer issue
+            // and prevents the shell nuxt.config from being inherited by the frame.
+            const frameSrcDir = path.resolve(frameAbsCwd, nuxt.options.srcDir.replace(nuxt.options.rootDir, '').replace(/^[\\/]/, '') || 'app')
+            const srcDir = fs.existsSync(frameSrcDir) ? frameSrcDir : frameAbsCwd
+            // Carry over CSS from the parent config so the frame renders with the same styles
+            const cssEntries = nuxt.options.css.map((c: string) => JSON.stringify(c)).join(', ')
+
+            // Remove app CSS from the shell to prevent style pollution — the frame will load it
+            nuxt.options.css = []
+
+            // Clear old .nuxt cache so the frame picks up the new config on restart
+            const frameCacheDir = path.join(frameTmpDir, '.nuxt')
+            if (fs.existsSync(frameCacheDir)) {
+                fs.rmSync(frameCacheDir, { recursive: true, force: true })
+            }
+
+            fs.mkdirSync(frameTmpDir, { recursive: true })
+            fs.writeFileSync(
+                frameTmpConfig,
+                [
+                    `export default {`,
+                    `  rootDir: ${JSON.stringify(frameAbsCwd)},`,
+                    `  srcDir: ${JSON.stringify(srcDir)},`,
+                    `  modules: [${JSON.stringify(moduleEntry)}],`,
+                    `  pages: true,`,
+                    `  stories: { mode: 'frame', storyRoots: [${JSON.stringify(frameAbsCwd)}] },`,
+                    cssEntries ? `  css: [${cssEntries}],` : '',
+                    `}`,
+                ].filter(Boolean).join('\n'),
+            )
+
             if (_frameProcess) {
                 _frameProcess.kill()
                 _frameProcess = null
             }
 
-            console.log(`[nuxt-stories] Starting frame server in ${frameAbsCwd} on port ${framePort}`)
+            console.log(`[nuxt-stories] Starting frame server in ${frameTmpDir} on port ${framePort}`)
 
-            // Resolve the nuxi binary from the frame app's node_modules so we
-            // don't depend on a globally-installed nuxi / npx availability.
             const nuxiBin = path.join(frameAbsCwd, 'node_modules', '.bin', 'nuxi')
 
             _frameProcess = spawn(
                 nuxiBin,
-                ['dev', '--port', String(framePort)],
+                ['dev', frameTmpDir, '--port', String(framePort)],
                 {
                     cwd: frameAbsCwd,
                     stdio: 'inherit',
                     shell: false,
-                    env: {
-                        ...process.env,
-                        NUXT_STORIES_MODE: 'frame',
-                    },
+                    env: { ...process.env },
                 },
             )
 
@@ -163,20 +210,22 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const frameChildren: NuxtPage[] = []
 
         // Shell route: the full stories UI (nav + iframe + controls)
+        // layout: false — StoriesPage is a full-page component, no wrapper layout needed
         const shellRoute: NuxtPage = {
             name: 'stories',
             file: resolver.resolve('./runtime/components/StoriesPage.vue'),
             ...options.route,
-            meta: { layout: 'default' },
+            meta: { layout: false },
             path: joinURL(routeBasePath, '/:story*'),
             children: shellChildren,
         }
 
         // Frame route: bare renderer used inside the iframe
+        // layout: false — StoryFramePage renders directly, app.vue only needs <NuxtPage />
         const frameRoute: NuxtPage = {
             name: 'stories-frame',
             file: resolver.resolve('./runtime/components/StoryFramePage.vue'),
-            meta: { layout: 'story' },
+            meta: { layout: false },
             path: joinURL(frameBasePath, '/:story*'),
             children: frameChildren,
         }
@@ -225,8 +274,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 name: 'NuxtStoryVariant',
                 filePath: resolver.resolve('./runtime/components/NuxtStoryVariant.vue'),
             })
-
-            
         }
 
         // IMPORTS
@@ -239,13 +286,18 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         extendPages(async (pages) => {
             const storyPaths: string[] = []
 
+            // Collect unique root directories: from Nuxt layers + explicit storyRoots
+            const layerRoots = nuxt.options._layers.map((l) => l.config.rootDir)
+            const extraRoots = (options.storyRoots || []).filter((r) => !layerRoots.includes(r))
+            const allRoots = [...layerRoots, ...extraRoots]
+
             await Promise.all(
-                nuxt.options._layers.map(async (layer) => {
-                    console.log(`[nuxt-stories] Resolving stories in layer: ${layer.config.rootDir}`)
-                    const files = await resolveFiles(layer.config.rootDir, pattern)
+                allRoots.map(async (rootDir) => {
+                    console.log(`[nuxt-stories] Resolving stories in: ${rootDir}`)
+                    const files = await resolveFiles(rootDir, pattern)
 
                     files.flat().forEach((file) => {
-                        const fileRoute = getFileRoute(file, layer.config.rootDir)
+                        const fileRoute = getFileRoute(file, rootDir)
                         const name = withoutLeadingSlash(fileRoute.name as string)
 
                         if (mode === 'shell' || mode === 'all') {
