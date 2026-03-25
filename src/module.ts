@@ -46,6 +46,7 @@ export interface NuxtStoriesOptions {
     route?: NuxtPage
     root?: string | string[]
     pattern?: string | string[]
+    enabled?: boolean
 }
 
 export default defineNuxtModule<NuxtStoriesOptions>({
@@ -54,6 +55,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         configKey: 'stories',
     },
     defaults: {
+        enabled: true,
         mode: 'all',
         framePort: 3000,
     },
@@ -76,6 +78,8 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         },
     },
     async setup(options, nuxt) {
+        if (!options.enabled) return
+        
         const resolver = createResolver(import.meta.url)
         const pattern = options.pattern || '**/*.stories.vue'
         const root = options.root || ['components', 'stories']

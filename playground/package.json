@@ -6,7 +6,7 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
-    "stories": "nuxt dev stories --port 6006"
+    "stories": "NUXT_STORIES=1 nuxt dev --port 6006"
   },
   "dependencies": {
     "nuxt": "^4.4.2"
