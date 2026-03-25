@@ -1,4 +1,8 @@
 import path from 'path'
+import { spawn, type ChildProcess } from 'child_process'
+
+// Module-level guard: only one frame process at a time across Nuxt restarts
+let _frameProcess: ChildProcess | null = null
 import {
     defineNuxtModule,
     createResolver,
@@ -17,6 +21,22 @@ import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
 import Aura from '@primeuix/themes/aura';
 
 export interface NuxtStoriesOptions {
+    /**
+     * Process role:
+     * - 'shell' — stories UI only (PrimeVue, nav, iframe); spawns the frame process automatically in dev
+     * - 'frame' — component renderer only (user's app context); no PrimeVue, no shell UI
+     * - 'all'   — single-process mode, backward-compatible default
+     */
+    mode?: 'shell' | 'frame' | 'all'
+    /**
+     * (shell mode) Absolute path to the frame app directory, used to spawn the frame dev server.
+     * Relative paths are resolved from the shell app's root.
+     */
+    frameCwd?: string
+    /**
+     * (shell mode) Port for the frame dev server. Default: 3000.
+     */
+    framePort?: number
     route?: NuxtPage
     root?: string | string[]
     pattern?: string | string[]
@@ -27,7 +47,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         name: 'nuxt-stories',
         configKey: 'stories',
     },
-    defaults: {},
+    defaults: {
+        mode: 'all',
+        framePort: 3000,
+    },
     moduleDependencies: {
         '@primevue/nuxt-module': {
             version: '^4',
@@ -50,8 +73,19 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const resolver = createResolver(import.meta.url)
         const pattern = options.pattern || '**/*.stories.vue'
         const root = options.root || ['components', 'stories']
+
+        // Allow the spawned frame process to override mode via env var
+        const mode = (process.env.NUXT_STORIES_MODE as NuxtStoriesOptions['mode']) || options.mode || 'all'
+
         const routeBasePath = joinURL('/', options.route?.path || '')
         const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
+
+        // In shell mode the iframe points to an absolute URL on the frame server
+        const frameBaseUrl = mode === 'shell'
+            ? options.frameCwd
+                ? `http://localhost:${options.framePort ?? 3000}`
+                : undefined
+            : undefined
 
         // // Alias primevue to the module's own node_modules so runtime components
         // // can import from 'primevue/...' without requiring the consuming app to install it.
@@ -67,6 +101,52 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         nuxt.options.runtimeConfig.public.nuxtStories = {
             routeBasePath,
             frameBasePath,
+            frameBaseUrl: frameBaseUrl ?? null,
+        } as { routeBasePath: string; frameBasePath: string; frameBaseUrl: string | null }
+
+        // SPAWN FRAME PROCESS (shell + dev mode only)
+        if (mode === 'shell' && nuxt.options.dev && options.frameCwd) {
+            const frameAbsCwd = path.resolve(nuxt.options.rootDir, options.frameCwd)
+            const framePort = options.framePort ?? 3000
+
+            // Kill any leftover frame process from a previous Nuxt restart
+            if (_frameProcess) {
+                _frameProcess.kill()
+                _frameProcess = null
+            }
+
+            console.log(`[nuxt-stories] Starting frame server in ${frameAbsCwd} on port ${framePort}`)
+
+            // Resolve the nuxi binary from the frame app's node_modules so we
+            // don't depend on a globally-installed nuxi / npx availability.
+            const nuxiBin = path.join(frameAbsCwd, 'node_modules', '.bin', 'nuxi')
+
+            _frameProcess = spawn(
+                nuxiBin,
+                ['dev', '--port', String(framePort)],
+                {
+                    cwd: frameAbsCwd,
+                    stdio: 'inherit',
+                    shell: false,
+                    env: {
+                        ...process.env,
+                        NUXT_STORIES_MODE: 'frame',
+                    },
+                },
+            )
+
+            _frameProcess.on('error', (err) => {
+                console.error('[nuxt-stories] Frame process error:', err)
+            })
+
+            _frameProcess.on('close', () => {
+                _frameProcess = null
+            })
+
+            nuxt.hook('close', () => {
+                _frameProcess?.kill()
+                _frameProcess = null
+            })
         }
 
         // Child route arrays — shared by both shell and frame parents
@@ -116,24 +196,35 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // await installModule(resolveModule('@nuxt/ui', { paths: resolver.resolve('.') }))
 
         // LAYOUTS
-        addLayout(resolver.resolve('./runtime/layouts/default.vue'), 'default')
-        addLayout(resolver.resolve('./runtime/layouts/story.vue'), 'story')
+        // Shell needs 'default' layout; frame needs 'story' layout; 'all' needs both
+        if (mode === 'shell' || mode === 'all') {
+            addLayout(resolver.resolve('./runtime/layouts/default.vue'), 'default')
+        }
+        if (mode === 'frame' || mode === 'all') {
+            addLayout(resolver.resolve('./runtime/layouts/story.vue'), 'story')
+        }
 
         // COMPONENTS
-        await addComponent({
-            name: 'NuxtStory',
-            filePath: resolver.resolve('./runtime/components/NuxtStory.vue'),
-        })
+        // NuxtStory / NuxtStoryVariant are only needed inside the frame
+        if (mode === 'frame' || mode === 'all') {
+            await addComponent({
+                name: 'NuxtStory',
+                filePath: resolver.resolve('./runtime/components/NuxtStory.vue'),
+            })
 
-        await addComponent({
-            name: 'NuxtStoryVariant',
-            filePath: resolver.resolve('./runtime/components/NuxtStoryVariant.vue'),
-        })
+            await addComponent({
+                name: 'NuxtStoryVariant',
+                filePath: resolver.resolve('./runtime/components/NuxtStoryVariant.vue'),
+            })
+        }
 
         // IMPORTS
         addImportsDir(resolver.resolve('./runtime/composables'))
 
         // PAGES
+        // Shell mode: only registers shell routes (reads story file paths for nav but renders via iframe)
+        // Frame mode: only registers frame routes (renders actual story components)
+        // All mode: both (single-process, backward-compatible)
         extendPages(async (pages) => {
             const storyPaths: string[] = []
 
@@ -146,23 +237,31 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                         const fileRoute = getFileRoute(file, layer.config.rootDir)
                         const name = withoutLeadingSlash(fileRoute.name as string)
 
-                        // Shell children: same file, prefixed name (for nav enumeration)
-                        shellChildren.push({ ...fileRoute, name: 'shell-' + name })
-                        // Frame children: same file, prefixed name (for actual rendering)
-                        frameChildren.push({ ...fileRoute, name: 'frame-' + name })
+                        if (mode === 'shell' || mode === 'all') {
+                            shellChildren.push({ ...fileRoute, name: 'shell-' + name })
+                        }
+                        if (mode === 'frame' || mode === 'all') {
+                            frameChildren.push({ ...fileRoute, name: 'frame-' + name })
+                        }
 
                         storyPaths.push(fileRoute.path as string)
                     })
                 }),
             )
 
-            pages.push(shellRoute, frameRoute)
+            if (mode === 'shell' || mode === 'all') pages.push(shellRoute)
+            if (mode === 'frame' || mode === 'all') pages.push(frameRoute)
 
             // Register all story paths for static generation (nuxi generate)
             nuxt.options.nitro.prerender ||= {}
             nuxt.options.nitro.prerender.routes = [
                 ...(nuxt.options.nitro.prerender.routes as string[] ?? []),
-                ...storyPaths.flatMap((p) => [joinURL(routeBasePath, p), joinURL(frameBasePath, p)]),
+                ...(mode === 'shell' || mode === 'all'
+                    ? storyPaths.map((p) => joinURL(routeBasePath, p))
+                    : []),
+                ...(mode === 'frame' || mode === 'all'
+                    ? storyPaths.map((p) => joinURL(frameBasePath, p))
+                    : []),
             ]
         })
 

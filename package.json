@@ -24,7 +24,8 @@
     "build": "nuxt-module-build build",
     "prepare": "nuxt-module-build build --stub && nuxt-module-build prepare",
     "release": "npm run lint && npm run build && changelogen --release && npm publish && git push --follow-tags",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "dev": "nuxt dev playground/stories --port 3001"
   },
   "dependencies": {
     "@primeuix/themes": "^2.0.3",

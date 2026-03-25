@@ -3,7 +3,7 @@
   "name": "stories-playground",
   "type": "module",
   "scripts": {
-    "dev": "nuxi dev",
+    "dev": "nuxi dev --port 3001",
     "build": "nuxi build",
     "generate": "nuxi generate"
   },
