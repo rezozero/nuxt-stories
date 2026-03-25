@@ -1,34 +1,35 @@
 <script setup lang="ts">
-import type { RouteRecordRaw } from 'vue-router'
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStories } from '../composables/use-stories'
 import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 
 const { storiesPath, storiesUIVisible } = useStories()
 const route = useRoute()
+const router = useRouter()
 
 // ITEM LIST
-const childRoutes = computed(() => {
-    return route.matched[0]?.children
-})
+// Use router.getRoutes() to avoid circular parent↔children references in
+// Nuxt's reactive route proxies (route.matched[0].children overflows the stack).
+// Routes are static after module setup, so no reactivity is needed here.
+const storyRoutes = router.getRoutes().filter((r) => r.name?.toString().startsWith('shell-'))
 
-const itemList = computed(() => {
+const itemList = computed((): NavItem => {
     const result: NavItem = {}
 
-    childRoutes.value.forEach((childRoute: RouteRecordRaw) => {
-        const filePath = childRoute.meta?.filePath as string | undefined
-
+    storyRoutes.forEach((r) => {
+        const filePath = r.meta?.filePath as string | undefined
         if (!filePath) return
 
         const filePathParts = filePath.split('/').filter((value) => value !== '')
+        const relativePath = r.name!.toString().slice('shell-'.length)
 
         let root = result
 
         filePathParts.forEach((filePathPart, index) => {
             if (index === filePathParts.length - 1) {
                 root[filePathPart] = {
-                    to: storiesPath(childRoute.path),
+                    to: storiesPath(relativePath),
                     label: filePathPart,
                 }
             } else {
@@ -97,8 +98,8 @@ watch(route, () => {
         </div>
         <div class="stories-nav__main">
             <div class="stories-nav__search">
-                <input v-model="search" type="text" class="stories-nav__search__input" />
-                <button class="stories-nav__search__clear" @click="search = ''" />
+                <PvInputText v-model="search" type="text" class="stories-nav__search__input" />
+                <PvButton class="stories-nav__search__clear" aria-label="Clear search" @click="search = ''" />
             </div>
             <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" />
         </div>

@@ -27,7 +27,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@primeuix/themes": "^2.0.3",
     "minimatch": "^9.0.3",
+    "primevue": "^4.0.0",
     "ufo": "^1.5.1"
   },
   "devDependencies": {
@@ -37,6 +39,7 @@
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.4.2",
     "@nuxt/test-utils": "^4.0.0",
+    "@primevue/nuxt-module": "^4.5.4",
     "@types/node": "^20.11.28",
     "changelogen": "^0.5.5",
     "eslint": "^8.56.0",
@@ -47,6 +50,6 @@
     "sass": "^1.72.0"
   },
   "engines": {
-    "node": "^20"
+    "node": "^20.19.0 || >=22.12.0"
   }
 }

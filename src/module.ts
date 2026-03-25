@@ -1,15 +1,20 @@
+import path from 'path'
 import {
     defineNuxtModule,
     createResolver,
     resolveFiles,
     addComponent,
     addImportsDir,
+    addLayout,
+    addPlugin,
     extendPages,
+    resolveModule,
 } from '@nuxt/kit' 
 import type { NuxtPage } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
 import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
+import Aura from '@primeuix/themes/aura';
 
 export interface NuxtStoriesOptions {
     route?: NuxtPage
@@ -23,12 +28,40 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         configKey: 'stories',
     },
     defaults: {},
+    moduleDependencies: {
+        '@primevue/nuxt-module': {
+            version: '^4',
+            defaults: {
+                autoImport: false,
+                // unstyled: true,
+                components: {
+                    prefix: 'pv',
+                    include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel']
+                },
+                options: {
+                    theme: {
+                        preset: Aura
+                    }
+                }
+            }
+        },
+    },
     async setup(options, nuxt) {
         const resolver = createResolver(import.meta.url)
         const pattern = options.pattern || '**/*.stories.vue'
         const root = options.root || ['components', 'stories']
         const routeBasePath = joinURL('/', options.route?.path || '')
         const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
+
+        // // Alias primevue to the module's own node_modules so runtime components
+        // // can import from 'primevue/...' without requiring the consuming app to install it.
+        // const primeVueDir = path.dirname(
+        //     resolveModule('primevue/package.json', { paths: [resolver.resolve('.')] }),
+        // )
+        // nuxt.options.alias['primevue'] = primeVueDir
+
+        // // Register the PrimeVue shell plugin (unstyled, no CSS contamination)
+        // addPlugin(resolver.resolve('./runtime/plugins/primevue'))
 
         // Expose base paths so runtime composables can compute URLs dynamically
         nuxt.options.runtimeConfig.public.nuxtStories = {
@@ -45,7 +78,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             name: 'stories',
             file: resolver.resolve('./runtime/components/StoriesPage.vue'),
             ...options.route,
-            meta: { layout: false },
+            meta: { layout: 'default' },
             path: joinURL(routeBasePath, '/:story*'),
             children: shellChildren,
         }
@@ -54,7 +87,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const frameRoute: NuxtPage = {
             name: 'stories-frame',
             file: resolver.resolve('./runtime/components/StoryFramePage.vue'),
-            meta: { layout: false },
+            meta: { layout: 'story' },
             path: joinURL(frameBasePath, '/:story*'),
             children: frameChildren,
         }
@@ -78,6 +111,14 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             }
         }
 
+        // NUXT UI — resolve from the module's own node_modules so the consuming app
+        // doesn't need to install @nuxt/ui itself
+        // await installModule(resolveModule('@nuxt/ui', { paths: resolver.resolve('.') }))
+
+        // LAYOUTS
+        addLayout(resolver.resolve('./runtime/layouts/default.vue'), 'default')
+        addLayout(resolver.resolve('./runtime/layouts/story.vue'), 'story')
+
         // COMPONENTS
         await addComponent({
             name: 'NuxtStory',
@@ -98,6 +139,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
             await Promise.all(
                 nuxt.options._layers.map(async (layer) => {
+                    console.log(`[nuxt-stories] Resolving stories in layer: ${layer.config.rootDir}`)
                     const files = await resolveFiles(layer.config.rootDir, pattern)
 
                     files.flat().forEach((file) => {
@@ -140,22 +182,13 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             })
         }
 
-        // NITRO CONFIG
-        // nuxt.hook('nitro:config', async (nitroConfig) => {
-        //     nitroConfig.publicAssets ||= []
-
-        //     // Serve <rootDir>/stories/ at /stories/ (story images, etc.)
-        //     nitroConfig.publicAssets.push({
-        //         dir: 'stories',
-        //         baseURL: 'stories',
-        //         maxAge: 0,
-        //     })
-
-        //     // Serve the module's public assets (stories.css, etc.)
-        //     nitroConfig.publicAssets.push({
-        //         dir: resolver.resolve('./runtime/public'),
-        //         maxAge: 60 * 60 * 24 * 365,
-        //     })
-        // })
+        // NITRO CONFIG — serve the module's static public assets (stories.css, etc.)
+        nuxt.hook('nitro:config', (nitroConfig) => {
+            nitroConfig.publicAssets ||= []
+            nitroConfig.publicAssets.push({
+                dir: resolver.resolve('./runtime/public'),
+                maxAge: 60 * 60 * 24 * 365,
+            })
+        })
     },
 })
