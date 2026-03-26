@@ -78,7 +78,9 @@ jobs:
 
       - name: Merge frame output into shell output
         run: |
-          cp -r playground/.output-tmp/frame-public playground/.output/public/-frame && rm -rf playground/.output-tmp
+          mkdir -p playground/.output/public/-frame
+          cp -r playground/.output-tmp/frame-public/. playground/.output/public/-frame/
+          rm -rf playground/.output-tmp
 
       # GitHub Pages ignores folders prefixed with _ by default; .nojekyll disables this.
       - name: Add .nojekyll

@@ -128,9 +128,14 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             frameBaseUrl: frameBaseUrl ?? null,
         } as { routeBasePath: string; frameBasePath: string; frameBaseUrl: string | null }
 
-        // Frame mode: the app has no root page, so disable link-crawling and only
-        // prerender the explicitly registered frame routes (avoids a 404 on '/').
-        if (mode === 'frame') {
+        // Disable link-crawling for both frame and shell static builds.
+        // Frame: avoids a 404 on '/' when no root page exists.
+        // Shell: StoriesPage is SSR'd with <iframe :src="iframeSrc">, whose computed value
+        //   contains /-frame/... URLs. If crawlLinks is true, Nitro follows those links and
+        //   renders them with the shell router (/:story* catches everything), writing shell
+        //   HTML into the /-frame/ subtree and clobbering the real frame output after merge.
+        // Explicit prerender routes (storyPaths) cover all required pages for both modes.
+        if (mode === 'frame' || (mode === 'shell' && !nuxt.options.dev)) {
             nuxt.options.nitro.prerender ||= {}
             nuxt.options.nitro.prerender.crawlLinks = false
         }
