@@ -2,7 +2,7 @@ name: Deploy Stories to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/next]
   workflow_dispatch:
 
 permissions:
@@ -38,51 +38,55 @@ jobs:
       - name: Build module
         run: pnpm build
 
-      # ── Frame app (playground/) ─────────────────────────────────────────────
-      # Generates the component renderer routes at /-frame/**
+      # ── Playground dependencies ─────────────────────────────────────────────
 
-      - name: Install frame app dependencies
+      - name: Install playground dependencies
         working-directory: playground
         run: pnpm install
 
-      - name: Generate frame app
+      # ── Frame pass ──────────────────────────────────────────────────────────
+      # Generates the component renderer routes at /-frame/**
+      # NUXT_STORIES_MODE overrides the mode option so the same nuxt.config is reused.
+
+      - name: Generate frame output
         working-directory: playground
         run: pnpm nuxi generate
         env:
+          NUXT_STORIES: "1"
           NUXT_STORIES_MODE: frame
-          # Set to your GitHub Pages base path, e.g. /nuxt-stories/ for
-          # https://rezozero.github.io/nuxt-stories/
+          # Base path matching the GitHub Pages URL: https://rezozero.github.io/nuxt-stories/
           NUXT_APP_BASE_URL: /nuxt-stories/
 
-      # ── Shell app (playground/stories/) ────────────────────────────────────
-      # Generates the stories UI (nav, iframe wrapper)
+      - name: Save frame output
+        run: mv playground/.output/public playground/.output/frame-public
 
-      - name: Install shell app dependencies
-        working-directory: playground/stories
-        run: pnpm install
+      # ── Shell pass ──────────────────────────────────────────────────────────
+      # Generates the stories UI (nav + iframe wrapper)
 
-      - name: Generate shell app
-        working-directory: playground/stories
+      - name: Generate shell output
+        working-directory: playground
         run: pnpm nuxi generate
         env:
+          NUXT_STORIES: "1"
+          NUXT_STORIES_MODE: shell
           NUXT_APP_BASE_URL: /nuxt-stories/
 
       # ── Merge outputs ───────────────────────────────────────────────────────
-      # Copy the frame app's /-frame/** output into the shell's output so both
-      # are served from the same origin (required for same-origin postMessage).
+      # Copy the frame output's /-frame/** into the shell output so both are
+      # served from the same origin (required for same-origin postMessage).
 
       - name: Merge frame output into shell output
         run: |
-          cp -r playground/.output/public/-frame playground/stories/.output/public/-frame
+          cp -r playground/.output/frame-public/-frame playground/.output/public/-frame
 
       # GitHub Pages ignores folders prefixed with _ by default; .nojekyll disables this.
       - name: Add .nojekyll
-        run: touch playground/stories/.output/public/.nojekyll
+        run: touch playground/.output/public/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: playground/stories/.output/public
+          path: playground/.output/public
 
   deploy:
     needs: build

@@ -87,8 +87,8 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const pattern = options.pattern || '**/*.stories.vue'
         const root = options.root || ['components', 'stories']
 
-        // Allow the spawned frame process to override mode via env var
-        const mode = options.mode || 'all'
+        // Allow the spawned frame process (or CI) to override mode via env var
+        const mode = (process.env.NUXT_STORIES_MODE as 'shell' | 'frame' | 'all' | undefined) || options.mode || 'all'
 
         // Always enable the pages module – the module adds routes via extendPages
         // regardless of whether an app/pages/ directory exists.
