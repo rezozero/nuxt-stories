@@ -43,6 +43,10 @@ export interface NuxtStoriesOptions {
      * but stories live in the shell's project root.
      */
     storyRoots?: string[]
+    /**
+     * Directory (relative to each layer root) whose contents are served as public assets.
+     */
+    publicAssetsDir?: string
     route?: NuxtPage
     root?: string | string[]
     pattern?: string | string[]
@@ -79,7 +83,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
     },
     async setup(options, nuxt) {
         if (!options.enabled) return
-        
+
         const resolver = createResolver(import.meta.url)
         const pattern = options.pattern || '**/*.stories.vue'
         const root = options.root || ['components', 'stories']
@@ -355,6 +359,18 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 dir: resolver.resolve('./runtime/public'),
                 maxAge: 60 * 60 * 24 * 365,
             })
+
+            // Expose each layer's stories assets directory as public assets
+            const assetsSubDir = options.publicAssetsDir ?? 'stories/assets'
+            const layerRoots = nuxt.options._layers.map((l) => l.config.rootDir)
+            const extraRoots = (options.storyRoots || []).filter((r) => !layerRoots.includes(r))
+            for (const rootDir of [...layerRoots, ...extraRoots]) {
+                const publicAssetsDir = path.join(rootDir, assetsSubDir)
+
+                if (fs.existsSync(publicAssetsDir)) {
+                    nitroConfig.publicAssets.push({ dir: publicAssetsDir, baseURL: '/' + assetsSubDir, maxAge: 0 })
+                }
+            }
         })
     },
 })

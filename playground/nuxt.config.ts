@@ -13,6 +13,7 @@ export default defineNuxtConfig({
         mode: 'shell',
         frameCwd: '.',
         framePort: 3000,
+        publicAssetsDir: 'stories/assets',
     },
     css: [
         join(currentDir, './app/assets/css/main.css')

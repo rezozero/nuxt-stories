@@ -1,3 +1,3 @@
 <template>
-    <VImage src="/stories/01.jpg" />
+    <VImage src="/stories/assets/01.jpg" />
 </template>
