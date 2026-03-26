@@ -260,6 +260,11 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // doesn't need to install @nuxt/ui itself
         // await installModule(resolveModule('@nuxt/ui', { paths: resolver.resolve('.') }))
 
+        // CSS — inject StoriesPage styles only in shell/all mode (not frame)
+        if (mode !== 'frame') {
+            nuxt.options.css.push(resolver.resolve('./runtime/assets/css/main.css'))
+        }
+
         // COMPONENTS
         // NuxtStory / NuxtStoryVariant are only needed inside the frame
         if (mode === 'frame' || mode === 'all') {

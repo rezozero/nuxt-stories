@@ -17,12 +17,6 @@ interface TreeNode {
     [key: string]: unknown
 }
 
-// Shell-level styles only (not loaded in the frame)
-const { app } = useRuntimeConfig()
-useHead({
-    link: [{ rel: 'stylesheet', href: joinURL(app.baseURL, 'css/stories.css') }],
-})
-
 const route = useRoute()
 const router = useRouter()
 const { storiesUIVisible, frameUrl, storiesPath } = useStories()
