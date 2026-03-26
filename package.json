@@ -48,7 +48,8 @@
     "eslint-plugin-prettier": "^5.1.3",
     "nuxt": "^4.4.2",
     "prettier": "^3.2.5",
-    "sass": "^1.72.0"
+    "sass": "^1.72.0",
+    "vue-tsc": "^2.2.12"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
