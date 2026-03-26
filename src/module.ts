@@ -11,7 +11,6 @@ import {
     resolveFiles,
     addComponent,
     addImportsDir,
-    addLayout,
     extendPages,
 } from '@nuxt/kit' 
 import type { NuxtPage } from '@nuxt/schema'
@@ -261,15 +260,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // doesn't need to install @nuxt/ui itself
         // await installModule(resolveModule('@nuxt/ui', { paths: resolver.resolve('.') }))
 
-        // LAYOUTS
-        // Shell needs 'default' layout; frame needs 'story' layout; 'all' needs both
-        if (mode === 'shell' || mode === 'all') {
-            addLayout(resolver.resolve('./runtime/layouts/default.vue'), 'default')
-        }
-        if (mode === 'frame' || mode === 'all') {
-            addLayout(resolver.resolve('./runtime/layouts/story.vue'), 'story')
-        }
-
         // COMPONENTS
         // NuxtStory / NuxtStoryVariant are only needed inside the frame
         if (mode === 'frame' || mode === 'all') {
@@ -294,10 +284,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         extendPages(async (pages) => {
             const storyPaths: string[] = []
 
-            // Collect unique root directories: from Nuxt layers + explicit storyRoots
-            const layerRoots = nuxt.options._layers.map((l) => l.config.rootDir)
-            const extraRoots = (options.storyRoots || []).filter((r) => !layerRoots.includes(r))
-            const allRoots = [...layerRoots, ...extraRoots]
+            if (mode === 'shell') {
+                pages.length = 0 // clear existing routes so only the shell route is registered at top level
+            }
+
+            // Collect unique root directories: app root + explicit storyRoots
+            const allRoots = [nuxt.options.rootDir, ...(options.storyRoots || [])]
 
             await Promise.all(
                 allRoots.map(async (rootDir) => {
@@ -360,11 +352,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 maxAge: 60 * 60 * 24 * 365,
             })
 
-            // Expose each layer's stories assets directory as public assets
+            // Expose stories assets directories as public assets
             const assetsSubDir = options.publicAssetsDir ?? 'stories/assets'
-            const layerRoots = nuxt.options._layers.map((l) => l.config.rootDir)
-            const extraRoots = (options.storyRoots || []).filter((r) => !layerRoots.includes(r))
-            for (const rootDir of [...layerRoots, ...extraRoots]) {
+            const allRoots = [nuxt.options.rootDir, ...(options.storyRoots || [])]
+            for (const rootDir of allRoots) {
                 const publicAssetsDir = path.join(rootDir, assetsSubDir)
 
                 if (fs.existsSync(publicAssetsDir)) {
