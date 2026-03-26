@@ -97,6 +97,14 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         const routeBasePath = joinURL('/', options.route?.path || '')
         const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
 
+        // In a two-pass static build (GitHub Actions) the frame is generated with
+        // NUXT_APP_BASE_URL=/base/-frame/ so the iframe-facing /-frame/* path is already
+        // encoded in the base URL.  Routes must therefore live at / (not /-frame/*) so
+        // that the generated files don't get an extra /-frame/ prefix that would make
+        // them double-nested after the merge step.
+        const staticFrameMode = mode === 'frame' && !nuxt.options.dev
+        const effectiveFrameBasePath = staticFrameMode ? '/' : frameBasePath
+
         // In shell mode with a separate frame process the iframe points to the frame server URL.
         // When frameCwd is not set or in other modes the iframe uses same-origin routes.
         const frameBaseUrl = mode === 'shell' && nuxt.options.dev && options.frameCwd
@@ -233,7 +241,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             name: 'stories-frame',
             file: resolver.resolve('./runtime/components/StoryFramePage.vue'),
             meta: { layout: false },
-            path: joinURL(frameBasePath, '/:story*'),
+            path: joinURL(effectiveFrameBasePath, '/:story*'),
             children: frameChildren,
         }
 
@@ -286,9 +294,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // Shell mode: only registers shell routes (reads story file paths for nav but renders via iframe)
         // Frame mode: only registers frame routes (renders actual story components)
         // All mode: both (single-process, backward-compatible)
-        extendPages(async (pages) => {
-            const storyPaths: string[] = []
+        // Shared story paths — populated in extendPages, consumed in nitro:config
+        const storyPaths: string[] = []
 
+        extendPages(async (pages) => {
             if (mode === 'shell') {
                 pages.length = 0 // clear existing routes so only the shell route is registered at top level
             }
@@ -319,18 +328,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
             if (mode === 'shell' || mode === 'all') pages.push(shellRoute)
             if (mode === 'frame' || mode === 'all') pages.push(frameRoute)
-
-            // Register all story paths for static generation (nuxi generate)
-            nuxt.options.nitro.prerender ||= {}
-            nuxt.options.nitro.prerender.routes = [
-                ...(nuxt.options.nitro.prerender.routes as string[] ?? []),
-                ...(mode === 'shell' || mode === 'all'
-                    ? storyPaths.map((p) => joinURL(routeBasePath, p))
-                    : []),
-                ...(mode === 'frame' || mode === 'all'
-                    ? storyPaths.map((p) => joinURL(frameBasePath, p))
-                    : []),
-            ]
         })
 
         // WATCH (dev only)
@@ -351,6 +348,22 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
         // NITRO CONFIG — serve the module's static public assets (stories.css, etc.)
         nuxt.hook('nitro:config', (nitroConfig) => {
+            // Register story paths for static generation (nuxi generate).
+            // Done here (not inside extendPages) to guarantee the routes are visible
+            // to Nitro — pages:extend is awaited before nitro:config fires.
+            if (storyPaths.length > 0) {
+                nitroConfig.prerender ||= {}
+                nitroConfig.prerender.routes = [
+                    ...(nitroConfig.prerender.routes ?? []),
+                    ...(mode === 'shell' || mode === 'all'
+                        ? storyPaths.map((p) => joinURL(routeBasePath, p))
+                        : []),
+                    ...(mode === 'frame' || mode === 'all'
+                        ? storyPaths.map((p) => joinURL(effectiveFrameBasePath, p))
+                        : []),
+                ]
+            }
+
             nitroConfig.publicAssets ||= []
             nitroConfig.publicAssets.push({
                 dir: resolver.resolve('./runtime/public'),

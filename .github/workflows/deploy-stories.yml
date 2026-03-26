@@ -54,11 +54,12 @@ jobs:
         env:
           NUXT_STORIES: "1"
           NUXT_STORIES_MODE: frame
-          # Base path matching the GitHub Pages URL: https://rezozero.github.io/nuxt-stories/
-          NUXT_APP_BASE_URL: /nuxt-stories/
+          # Frame gets its own sub-base so its _nuxt/ assets land under /-frame/_nuxt/
+          # after the merge, preventing collision with the shell's _nuxt/ bundle.
+          NUXT_APP_BASE_URL: /nuxt-stories/-frame/
 
       - name: Save frame output
-        run: mv playground/.output/public playground/.output/frame-public
+        run: mkdir -p playground/.output-tmp && mv playground/.output/public playground/.output-tmp/frame-public
 
       # ── Shell pass ──────────────────────────────────────────────────────────
       # Generates the stories UI (nav + iframe wrapper)
@@ -77,7 +78,7 @@ jobs:
 
       - name: Merge frame output into shell output
         run: |
-          cp -r playground/.output/frame-public/-frame playground/.output/public/-frame
+          cp -r playground/.output-tmp/frame-public playground/.output/public/-frame && rm -rf playground/.output-tmp
 
       # GitHub Pages ignores folders prefixed with _ by default; .nojekyll disables this.
       - name: Add .nojekyll
