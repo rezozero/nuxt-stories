@@ -95,13 +95,22 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         nuxt.options.pages = true
 
         const routeBasePath = joinURL('/', options.route?.path || '')
-        const frameBasePath = routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame'
+        // NUXT_STORIES_FRAME_BASE_PATH lets the CI build override where the frame lives.
+        // In the two-pass GitHub Actions workflow the shell is built with e.g.
+        //   NUXT_STORIES_FRAME_BASE_PATH=/nuxt-stories-frame
+        // so its iframes point to /nuxt-stories/nuxt-stories-frame/…, while the frame is
+        // built with NUXT_APP_BASE_URL=/nuxt-stories/nuxt-stories-frame/ and its output is
+        // merged into the artifact under nuxt-stories-frame/.  This gives the frame its own
+        // _nuxt/ bundle (no asset collision) and a dedicated URL namespace that is clearly
+        // distinct from the shell's /:story* catch-all routes.
+        const frameBasePath = process.env.NUXT_STORIES_FRAME_BASE_PATH
+            || (routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame')
 
         // In a two-pass static build (GitHub Actions) the frame is generated with
-        // NUXT_APP_BASE_URL=/base/-frame/ so the iframe-facing /-frame/* path is already
-        // encoded in the base URL.  Routes must therefore live at / (not /-frame/*) so
-        // that the generated files don't get an extra /-frame/ prefix that would make
-        // them double-nested after the merge step.
+        // NUXT_APP_BASE_URL=/nuxt-stories/<frame-base>/ so that base path is already
+        // encoded in the app base URL.  Routes must therefore live at / (not at the
+        // frame base path) so that the generated files land directly in .output/public/
+        // and do not get double-prefixed after the merge step.
         const staticFrameMode = mode === 'frame' && !nuxt.options.dev
         const effectiveFrameBasePath = staticFrameMode ? '/' : frameBasePath
 
@@ -131,9 +140,9 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // Disable link-crawling for both frame and shell static builds.
         // Frame: avoids a 404 on '/' when no root page exists.
         // Shell: StoriesPage is SSR'd with <iframe :src="iframeSrc">, whose computed value
-        //   contains /-frame/... URLs. If crawlLinks is true, Nitro follows those links and
+        //   contains frame URLs.  If crawlLinks is true, Nitro follows those links and
         //   renders them with the shell router (/:story* catches everything), writing shell
-        //   HTML into the /-frame/ subtree and clobbering the real frame output after merge.
+        //   HTML into the frame subtree and clobbering the real frame output after merge.
         // Explicit prerender routes (storyPaths) cover all required pages for both modes.
         if (mode === 'frame' || (mode === 'shell' && !nuxt.options.dev)) {
             nuxt.options.nitro.prerender ||= {}
