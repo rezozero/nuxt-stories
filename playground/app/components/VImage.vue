@@ -1,12 +1,16 @@
 <script setup lang="ts">
-defineProps({
+import { joinURL } from 'ufo';
+
+const { src } = defineProps({
     src: {
         type: String,
         required: true,
     },
 })
+
+const internalSrc = computed(() => joinURL(useRuntimeConfig().app.baseURL, src));
 </script>
 
 <template>
-    <img :src="src" />
+    <img :src="internalSrc" />
 </template>
