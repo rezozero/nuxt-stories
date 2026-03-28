@@ -54,16 +54,16 @@ jobs:
       #   • a URL namespace distinct from the shell's /:story* catch-all routes,
       #     so the shell's 200.html SPA fallback can never be served for frame paths
 
-      - name: Generate frame output
-        working-directory: playground
-        run: pnpm nuxi generate
-        env:
-          NUXT_STORIES: "1"
-          NUXT_STORIES_MODE: frame
-          NUXT_APP_BASE_URL: /nuxt-stories/nuxt-stories-frame/
+      # - name: Generate frame output
+      #   working-directory: playground
+      #   run: pnpm nuxi generate
+      #   env:
+      #     NUXT_STORIES: "1"
+      #     NUXT_STORIES_MODE: frame
+      #     NUXT_APP_BASE_URL: /nuxt-stories/nuxt-stories-frame/
 
-      - name: Save frame output
-        run: mkdir -p playground/.output-tmp && mv playground/.output/public playground/.output-tmp/frame-public
+      # - name: Save frame output
+      #   run: mkdir -p playground/.output-tmp && mv playground/.output/public playground/.output-tmp/frame-public
 
       # ── Shell pass ──────────────────────────────────────────────────────────
       # Generates the stories UI (nav + iframe wrapper)
@@ -73,7 +73,7 @@ jobs:
         run: pnpm nuxi generate
         env:
           NUXT_STORIES: "1"
-          NUXT_STORIES_MODE: shell
+          NUXT_STORIES_MODE: all
           NUXT_APP_BASE_URL: /nuxt-stories/
           # Tell the shell where the frame is served from so iframe srcs are correct.
           NUXT_STORIES_FRAME_BASE_PATH: /nuxt-stories-frame
@@ -81,11 +81,11 @@ jobs:
       # Copy the frame output into nuxt-stories-frame/ inside the shell output so both
       # are served from the same origin (required for same-origin postMessage).
 
-      - name: Merge frame output into shell output
-        run: |
-          mkdir -p playground/.output/public/nuxt-stories-frame
-          cp -r playground/.output-tmp/frame-public/. playground/.output/public/nuxt-stories-frame/
-          rm -rf playground/.output-tmp
+      # - name: Merge frame output into shell output
+      #   run: |
+      #     mkdir -p playground/.output/public/nuxt-stories-frame
+      #     cp -r playground/.output-tmp/frame-public/. playground/.output/public/nuxt-stories-frame/
+      #     rm -rf playground/.output-tmp
 
       # GitHub Pages ignores folders prefixed with _ by default; .nojekyll disables this.
       - name: Add .nojekyll

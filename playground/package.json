@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
-    "build": "nuxt build",
     "generate": "nuxt generate",
     "stories": "NUXT_STORIES=1 nuxt dev --port 6006"
   },
