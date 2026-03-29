@@ -6,6 +6,7 @@ import { joinURL } from 'ufo'
 import { useStories } from '../composables/use-stories'
 import StoryControlsPanel from './StoryControlsPanel.vue'
 import type { ControlSchema } from '../composables/use-story-controls'
+import 'primeicons/primeicons.css'
 
 // Minimal TreeNode shape expected by PrimeVue's Tree component
 interface TreeNode {
@@ -147,6 +148,20 @@ function swapDimensions() {
     viewportHeight.value = tmp
 }
 
+const presetMenuRef = ref()
+
+function togglePresetMenu(event: Event) {
+    presetMenuRef.value?.toggle(event)
+}
+
+const presetMenuModel = computed(() =>
+    PRESETS.map((preset) => ({
+        label: preset.label,
+        icon: viewportWidth.value === preset.width && viewportHeight.value === preset.height ? 'pi pi-check' : undefined,
+        command: () => applyPreset(preset),
+    }))
+)
+
 const iframeStyle = computed(() => ({
     width: viewportWidth.value ? `${viewportWidth.value}px` : '100%',
     height: viewportHeight.value ? `${viewportHeight.value}px` : '100%',
@@ -200,49 +215,60 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <PvSplitter class="nuxt-stories-shell">
+    <PvSplitter class="nuxt-stories-shell stories-page">
         <PvSplitterPanel v-show="storiesUIVisible" :class="['stories-nav', navIsOpen && 'stories-nav--open']">
-            <div class="stories-nav__head">
-                <NuxtLink :to="storiesPath('/')" class="stories-nav__title">Stories</NuxtLink>
-                <PvButton class="stories-nav__toggle" aria-label="Toggle nav" @click="navIsOpen = !navIsOpen" />
-            </div>
-            <div class="stories-nav__main">
-                <PvTree
-                    :value="filteredItemList"
-                    selection-mode="single"
-                    :selection-keys="selectedKey"
-                    :expanded-keys="expandedKeys"
-                    filter
-                    class="stories-nav__tree"
-                    @node-select="onNodeSelect"
-                />
-            </div>
+            <PvTree
+                :value="filteredItemList"
+                selection-mode="single"
+                :selection-keys="selectedKey"
+                :expanded-keys="expandedKeys"
+                filter
+                class="stories-nav__tree"
+                @node-select="onNodeSelect"
+            />
         </PvSplitterPanel>
-
-        <PvSplitterPanel class="stories-page__main">
-            <div class="stories-page__toolbar">
-                <PvButton
-                    v-for="preset in PRESETS"
-                    :key="preset.label"
-                    :class="[
-                        'stories-page__toolbar__btn',
-                        viewportWidth === preset.width &&
-                            viewportHeight === preset.height &&
-                            'stories-page__toolbar__btn--active',
-                    ]"
-                    @click="applyPreset(preset)"
-                >{{ preset.label }}</PvButton>
-                <PvButton
-                    v-if="viewportWidth !== null"
-                    class="stories-page__toolbar__btn"
-                    title="Swap dimensions"
-                    @click="swapDimensions"
-                >⇄</PvButton>
-                <span v-if="viewportWidth !== null" class="stories-page__toolbar__size">
-                    {{ viewportWidth }} × {{ viewportHeight }}
-                </span>
-            </div>
-
+        <PvSplitterPanel class="stories-main">
+            <PvToolbar>
+                <template #start>
+                    <div class="stories-button-group">
+                        <PvButton
+                            icon="pi pi-desktop"
+                            severity="secondary"
+                            aria-haspopup="true"
+                            aria-controls="preset-menu"
+                            @click="togglePresetMenu"
+                        />
+                        <PvMenu
+                            id="preset-menu"
+                            ref="presetMenuRef"
+                            :model="presetMenuModel"
+                            popup
+                            class="stories-menu"
+                        />
+                        <PvButton
+                            v-if="viewportWidth !== null"
+                            icon="pi pi-arrow-right-arrow-left"
+                            severity="secondary"
+                            title="Swap dimensions"
+                            @click="swapDimensions"
+                        />
+                        <span v-if="viewportWidth !== null" class="stories-page__toolbar__size">
+                            {{ viewportWidth }} × {{ viewportHeight }}
+                        </span>
+                    </div>
+                </template>
+                <template #end>
+                    <PvButton
+                        as="a"
+                        icon="pi pi-external-link"
+                        severity="secondary"
+                        :href="iframeSrc"
+                        label="Open the story"
+                        target="_blank"
+                        rel="noopener"
+                    />
+                </template>
+            </PvToolbar>    
             <div class="stories-page__frame-wrap">
                 <iframe
                     ref="iframeRef"
@@ -264,24 +290,39 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss">
+.stories-page,
+.stories-menu  {
+    font-family: Helvetica, sans-serif;
+    font-size: 14px;
+}
+
+.stories-page {
+    min-height: 100vh;
+}
+
+.stories-page a {
+    text-decoration: none;
+    font-size: inherit;
+}
+
+.stories-button-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .stories-nav {
     position: sticky;
-    z-index: 1000;
     top: 0;
     width: 100%;
     flex-shrink: 0;
-    border-right: 1px solid #e3e3e3ff;
-    background-color: #f6f6f6ff;
-    font-family: Helvetica, sans-serif;
-    font-size: 14px;
-    overflow-y: auto;
 
     @media (min-width: 768px) {
         overflow: auto;
         width: 17vw;
-        height: 100vh;
         min-width: 150px;
         max-width: 400px;
+        min-height: 100%;
         padding-inline: 1rem;
         resize: horizontal;
     }
@@ -294,238 +335,12 @@ onBeforeUnmount(() => {
     }
 }
 
-.stories-nav__head {
-    position: sticky;
-    z-index: 1;
-    top: 0;
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #e3e3e3ff;
-    background-color: inherit;
-
-    @media (min-width: 768px) {
-        padding-inline: 0;
-    }
-}
-
-.stories-nav__title {
-    font-size: 1.3rem;
-    text-decoration: none;
-    color: inherit;
-}
-
-.stories-nav__toggle {
-    all: unset;
-    display: flex;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-left: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    background-color: lightgrey;
-    border-radius: 100%;
-    cursor: pointer;
-
-    @media (min-width: 768px) {
-        display: none;
-    }
-
-    &::before,
-    &::after {
-        display: block;
-        width: 14px;
-        height: 2px;
-        content: '';
-        background-color: currentColor;
-    }
-
-    .stories-nav--open &::before {
-        transform: translateY(2px) rotate(45deg);
-    }
-
-    .stories-nav--open &::after {
-        transform: translateY(-2px) rotate(-45deg);
-    }
-}
-
-.stories-nav__main {
-    display: none;
-    margin-top: 1em;
-    padding: 1rem 1rem 2rem;
-
-    @media (min-width: 768px) {
-        display: block;
-        padding-inline: 0;
-    }
-
-    .stories-nav--open & {
-        display: block;
-    }
-}
-
-.stories-nav__search {
-    position: relative;
-    display: flex;
-    align-items: center;
-    border-radius: 6px;
-    margin-bottom: 16px;
-    background-color: rgba(0, 0, 0, 0.04);
-}
-
-.stories-nav__search__input {
-    width: 100%;
-    border: none;
-    background-color: transparent;
-    padding: 0.5em 0.5rem;
-    font-size: 13px;
-    outline: none;
-}
-
-.stories-nav__search__clear {
-    all: unset;
-    position: absolute;
-    right: 8px;
-    display: flex;
-    width: 18px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 100vmax;
-    aspect-ratio: 1;
-    background-color: lightgrey;
-    cursor: pointer;
-
-    &::before,
-    &::after {
-        position: absolute;
-        background-color: black;
-        content: '';
-        rotate: 45deg;
-    }
-
-    &::before {
-        width: 1px;
-        height: 50%;
-    }
-
-    &::after {
-        width: 50%;
-        height: 1px;
-    }
-}
-
-// PrimeVue Tree — unstyled mode, styled with BEM-like selectors
-.stories-nav__tree {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-
-    // PrimeVue Tree root ul
-    ul {
-        list-style: none;
-        margin: 0;
-        padding-left: 1em;
-    }
-
-    // toggler button (expand/collapse)
-    [data-pc-section='toggler'] {
-        all: unset;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.2rem;
-        height: 1.2rem;
-        margin-right: 0.3rem;
-        border-radius: 100%;
-        background-color: #e4e4e4;
-        cursor: pointer;
-        font-size: 0.7rem;
-        flex-shrink: 0;
-    }
-
-    // folder node row
-    [data-pc-section='content'] {
-        display: flex;
-        align-items: center;
-        padding: 0.25rem 0.3rem;
-        border-radius: 0.3rem;
-        cursor: pointer;
-        user-select: none;
-
-        &:hover {
-            background-color: rgba(0, 0, 0, 0.06);
-        }
-    }
-
-    // folder label
-    [data-pc-section='nodelabel'] {
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    // folder node rows get a small top margin
-    [data-pc-section='node']:not([data-pc-leaf='true']) > [data-pc-section='content'] {
-        margin-top: 0.5rem;
-        font-weight: 600;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #888;
-    }
-
-    // selected (active) leaf
-    [data-pc-section='node'][aria-selected='true'] > [data-pc-section='content'] {
-        background-color: #222;
-        color: #fff;
-    }
-}
-
-.stories-page__main {
+.stories-main {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-}
-
-.stories-page__toolbar {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.4rem 0.75rem;
-    background-color: #f6f6f6ff;
-    border-bottom: 1px solid #e3e3e3ff;
-    font-family: Helvetica, sans-serif;
-    font-size: 12px;
-    flex-shrink: 0;
-}
-
-.stories-page__toolbar__btn {
-    padding: 0.2rem 0.5rem;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-
-    &--active {
-        background-color: #222;
-        color: #fff;
-        border-color: #222;
-    }
-
-    &:hover:not(.stories-page__toolbar__btn--active) {
-        background-color: #eee;
-    }
-}
-
-.stories-page__toolbar__size {
-    margin-left: 0.5rem;
-    color: #666;
 }
 
 .stories-page__frame-wrap {

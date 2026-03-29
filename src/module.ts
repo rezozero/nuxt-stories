@@ -67,10 +67,17 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             version: '^4',
             defaults: {
                 autoImport: false,
-                // unstyled: true,
                 components: {
                     prefix: 'pv',
-                    include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel']
+                    include: [
+                        'Tree', 
+                        'Button', 
+                        'InputText', 
+                        'Splitter', 
+                        'SplitterPanel', 
+                        'Toolbar', 
+                        'Menu'
+                    ]
                 },
                 options: {
                     theme: {
