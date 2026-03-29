@@ -77,23 +77,28 @@ const filteredItemList = computed((): TreeNode[] => {
     return filterTree(itemList.value, search.value)
 })
 
-// All folder nodes are expanded by default
+// Only expand folders that are ancestors of the currently selected leaf
 const expandedKeys = computed((): Record<string, boolean> => {
     const keys: Record<string, boolean> = {}
-    function collect(nodes: TreeNode[]) {
-        nodes.forEach((node) => {
-            if (node.children) {
-                keys[node.key as string] = true
-                collect(node.children)
+    function findPath(nodes: TreeNode[]): boolean {
+        for (const node of nodes) {
+            if (node.leaf) {
+                if (node.key === route.path) return true
+            } else if (node.children) {
+                if (findPath(node.children)) {
+                    keys[node.key as string] = true
+                    return true
+                }
             }
-        })
+        }
+        return false
     }
-    collect(itemList.value)
+    findPath(itemList.value)
     return keys
 })
 
 // Highlight the active route — leaf key === route.path
-const selectionKeys = computed((): Record<string, boolean> => ({ [route.path]: true }))
+const selectedKey = computed((): Record<string, boolean> => ({ [route.path]: true }))
 
 function onNodeSelect(node: TreeNode) {
     if (node.data?.to) router.push(node.data.to)
@@ -202,15 +207,12 @@ onBeforeUnmount(() => {
                 <PvButton class="stories-nav__toggle" aria-label="Toggle nav" @click="navIsOpen = !navIsOpen" />
             </div>
             <div class="stories-nav__main">
-                <div class="stories-nav__search">
-                    <PvInputText v-model="search" type="text" class="stories-nav__search__input" placeholder="Search…" />
-                    <PvButton v-if="search" class="stories-nav__search__clear" aria-label="Clear search" @click="search = ''" />
-                </div>
                 <PvTree
                     :value="filteredItemList"
                     selection-mode="single"
-                    :selection-keys="selectionKeys"
+                    :selection-keys="selectedKey"
                     :expanded-keys="expandedKeys"
+                    filter
                     class="stories-nav__tree"
                     @node-select="onNodeSelect"
                 />
