@@ -183,6 +183,20 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             // Carry over CSS from the parent config so the frame renders with the same styles
             const cssEntries = nuxt.options.css.map((c: string) => JSON.stringify(c)).join(', ')
 
+            // Carry over package-name modules from the merged config (e.g. @nuxt/icon from parent layers)
+            // so that components registered by those modules are available inside the frame.
+            // Relative/absolute paths are excluded: they either point to the stories module itself
+            // or would resolve incorrectly from the frame's rootDir.
+            // Function-based (inline) modules are also skipped as they can't be serialised.
+            const parentModuleEntries = (nuxt.options.modules as unknown[])
+                .filter((m) => {
+                    const name = typeof m === 'string' ? m : Array.isArray(m) ? String(m[0]) : null
+                    if (!name) return false
+                    return !name.startsWith('.') && !name.startsWith('/')
+                })
+                .map(m => JSON.stringify(m))
+                .join(', ')
+
             // Remove app CSS from the shell to prevent style pollution — the frame will load it
             nuxt.options.css = []
 
@@ -199,7 +213,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                     `export default {`,
                     `  rootDir: ${JSON.stringify(frameAbsCwd)},`,
                     `  srcDir: ${JSON.stringify(srcDir)},`,
-                    `  modules: [${JSON.stringify(moduleEntry)}],`,
+                    `  modules: [${JSON.stringify(moduleEntry)}${parentModuleEntries ? ', ' + parentModuleEntries : ''}],`,
                     `  pages: true,`,
                     `  stories: { mode: 'frame', storyRoots: [${JSON.stringify(frameAbsCwd)}] },`,
                     cssEntries ? `  css: [${cssEntries}],` : '',

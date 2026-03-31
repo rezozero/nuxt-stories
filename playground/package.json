@@ -8,6 +8,7 @@
     "stories": "NUXT_STORIES=1 nuxt dev stories --port 6006"
   },
   "dependencies": {
+    "@nuxt/icon": "2.2.1",
     "nuxt": "^4.4.2"
   }
 }
