@@ -1,74 +1,101 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStories } from '../composables/use-stories'
-import StoriesNavItem, { type NavItem } from './StoriesNavItem.vue'
 
-const { storiesPath, storiesUIVisible } = useStories()
+interface TreeNode {
+    key: string
+    label?: string
+    data?: { to: string }
+    children?: TreeNode[]
+    leaf?: boolean
+    [key: string]: unknown
+}
+
 const route = useRoute()
 const router = useRouter()
+const { storiesPath } = useStories()
 
-// ITEM LIST
-// Use router.getRoutes() to avoid circular parent↔children references in
-// Nuxt's reactive route proxies (route.matched[0].children overflows the stack).
-// Routes are static after module setup, so no reactivity is needed here.
+// Use router.getRoutes() instead of route.matched to avoid infinite recursion.
 const storyRoutes = router.getRoutes().filter((r) => r.name?.toString().startsWith('shell-'))
 
-const itemList = computed((): NavItem => {
-    const result: NavItem = {}
+// Build a PrimeVue TreeNode[] from the file-path parts of each story route.
+// Leaf node keys equal the story URL (route.path), which makes selectionKeys
+// trivially computable without walking the tree.
+function addToTree(nodes: TreeNode[], parts: string[], to: string, keyPrefix: string): void {
+    if (!parts.length) return
+    const part = parts[0] as string
+    const key = keyPrefix ? `${keyPrefix}/${part}` : part
+    if (parts.length === 1) {
+        // leaf — use the destination URL as the unique key
+        nodes.push({ key: to, label: part, data: { to }, leaf: true })
+    } else {
+        let folder = nodes.find((n) => n.label === part && !n.leaf)
+        if (!folder) {
+            folder = { key, label: part, children: [] }
+            nodes.push(folder)
+        }
+        if (folder.children) addToTree(folder.children, parts.slice(1), to, key)
+    }
+}
 
+const itemList = computed((): TreeNode[] => {
+    const result: TreeNode[] = []
     storyRoutes.forEach((r) => {
         const filePath = r.meta?.filePath as string | undefined
         if (!filePath) return
-
-        const filePathParts = filePath.split('/').filter((value) => value !== '')
+        const parts = filePath.split('/').filter(Boolean)
         const relativePath = r.name!.toString().slice('shell-'.length)
-
-        let root = result
-
-        filePathParts.forEach((filePathPart, index) => {
-            if (index === filePathParts.length - 1) {
-                root[filePathPart] = {
-                    to: storiesPath(relativePath),
-                    label: filePathPart,
-                }
-            } else {
-                if (!root[filePathPart]) root[filePathPart] = {}
-
-                root = root[filePathPart] as NavItem
-            }
-        })
+        addToTree(result, parts, storiesPath(relativePath), '')
     })
-
     return result
 })
 
-// SEARCH
 const search = ref('')
 
-function filterComponentByName(query: string) {
-    const itemEntries = Object.entries(itemList.value)
-    const result: NavItem = {}
-
-    itemEntries.forEach(([folder, content]) => {
-        const components = Object.entries(content as Record<string, unknown>)
-
-        components.forEach(([name, value]) => {
-            const isMatching = name.toLowerCase().includes(query.toLowerCase())
-            if (!isMatching) return
-
-            if (result?.[folder]) result[folder][name] = value
-            else Object.assign(result, { [folder]: { [name]: value } })
-        })
-    })
-
-    return result
+function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
+    return nodes.reduce<TreeNode[]>((acc, node) => {
+        if (node.children) {
+            const filtered = filterTree(node.children, query)
+            if (filtered.length) acc.push({ ...node, children: filtered })
+        } else if (node.label?.toLowerCase().includes(query.toLowerCase())) {
+            acc.push(node)
+        }
+        return acc
+    }, [])
 }
 
-const filteredItemList = computed(() => {
+const filteredItemList = computed((): TreeNode[] => {
     if (!search.value) return itemList.value
-    else return filterComponentByName(search.value)
+    return filterTree(itemList.value, search.value)
 })
+
+// Only expand folders that are ancestors of the currently selected leaf
+const expandedKeys = computed((): Record<string, boolean> => {
+    const keys: Record<string, boolean> = {}
+    function findPath(nodes: TreeNode[]): boolean {
+        for (const node of nodes) {
+            if (node.leaf) {
+                if (node.key === route.path) return true
+            } else if (node.children) {
+                if (findPath(node.children)) {
+                    keys[node.key as string] = true
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    findPath(itemList.value)
+    return keys
+})
+
+// Highlight the active route — leaf key === route.path
+const selectedKey = computed((): Record<string, boolean> => ({ [route.path]: true }))
+
+function onNodeSelect(node: TreeNode) {
+    if (node.data?.to) router.push(node.data.to)
+}
 
 function onKeyUp(event: KeyboardEvent) {
     if (event.key === 'Escape') search.value = ''
@@ -81,177 +108,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener('keyup', onKeyUp)
 })
-
-// OPEN/CLOSE
-const isOpen = ref(false)
-
-watch(route, () => {
-    isOpen.value = false
-})
 </script>
 
 <template>
-    <div v-show="storiesUIVisible" :class="['stories-nav', isOpen && 'stories-nav--open']">
-        <div class="stories-nav__head">
-            <NuxtLink :to="storiesPath('/')" class="stories-nav__title"> Stories</NuxtLink>
-            <button class="stories-nav__toggle" @click="isOpen = !isOpen"></button>
-        </div>
-        <div class="stories-nav__main">
-            <div class="stories-nav__search">
-                <PvInputText v-model="search" type="text" class="stories-nav__search__input" />
-                <PvButton class="stories-nav__search__clear" aria-label="Clear search" @click="search = ''" />
-            </div>
-            <StoriesNavItem v-for="(item, key) in filteredItemList" :key="key" :item="item" :label="key" />
-        </div>
-    </div>
+    <PvTree
+        :value="filteredItemList"
+        selection-mode="single"
+        :selection-keys="selectedKey"
+        :expanded-keys="expandedKeys"
+        filter
+        class="stories-nav__tree"
+        @node-select="onNodeSelect"
+    />
 </template>
-
-<style lang="scss">
-.stories-nav {
-    position: sticky;
-    z-index: 1000;
-    top: 0;
-    width: 100%;
-    flex-shrink: 0;
-    border-right: 1px solid #e3e3e3ff;
-    background-color: #f6f6f6ff;
-    font-family: Helvetica, sans-serif;
-    font-size: 14px;
-    overflow-y: auto;
-
-    @media (min-width: 768px) {
-        overflow: auto;
-        width: 17vw;
-        height: 100vh;
-        min-width: 150px;
-        max-width: 400px;
-        padding-inline: 1rem;
-        resize: horizontal;
-    }
-
-    &--open {
-        @media (max-width: 767px) {
-            position: fixed;
-            height: 100vh;
-        }
-    }
-}
-
-.stories-nav__head {
-    position: sticky;
-    z-index: 1;
-    top: 0;
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #e3e3e3ff;
-    background-color: inherit;
-
-    @media (min-width: 768px) {
-        padding-inline: 0;
-    }
-}
-
-.stories-nav__title {
-    font-size: 1.3rem;
-    text-decoration: none;
-    color: inherit;
-}
-
-.stories-nav__toggle {
-    display: flex;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-left: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    background-color: lightgrey;
-    border-radius: 100%;
-
-    @media (min-width: 768px) {
-        display: none;
-    }
-
-    &::before,
-    &::after {
-        display: block;
-        width: 14px;
-        height: 2px;
-        content: '';
-        background-color: currentColor;
-    }
-
-    .stories-nav--open &::before {
-        transform: translateY(2px) rotate(45deg);
-    }
-
-    .stories-nav--open &::after {
-        transform: translateY(-2px) rotate(-45deg);
-    }
-}
-
-.stories-nav__main {
-    display: none;
-    margin-top: 1em;
-    padding: 1rem 1rem 2rem;
-
-    @media (min-width: 768px) {
-        display: block;
-        padding-inline: 0;
-    }
-
-    .stories-nav--open & {
-        display: block;
-    }
-}
-
-.stories-nav__search {
-    position: relative;
-    display: flex;
-    align-items: center;
-    border-radius: 6px;
-    margin-bottom: 16px !important;
-    background-color: rgba(black, 0.04);
-}
-
-.stories-nav__search__input {
-    width: 90%;
-    border: none;
-    background-color: transparent;
-    padding: 0.5em 0.2rem;
-}
-
-.stories-nav__search__clear {
-    all: unset;
-    position: absolute;
-    right: 10px;
-    display: flex;
-    width: 18px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 100vmax;
-    aspect-ratio: 1;
-    background-color: lightgrey;
-    cursor: pointer;
-
-    &::before,
-    &::after {
-        position: absolute;
-        background-color: black;
-        content: '';
-        rotate: 45deg;
-    }
-
-    &::before {
-        width: 1px;
-        height: 50%;
-    }
-
-    &::after {
-        width: 50%;
-        height: 1px;
-    }
-}
-</style>

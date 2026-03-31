@@ -2,7 +2,6 @@ import { joinURL, withoutTrailingSlash } from 'ufo'
 import { useState, useRuntimeConfig } from '#imports'
 
 export function useStories() {
-    const storiesUIVisible = useState('storiesUIVisible', () => true)
     const config = useRuntimeConfig()
     const {
         routeBasePath,
@@ -43,5 +42,5 @@ export function useStories() {
         return joinURL(appBase || '/', framePath)
     }
 
-    return { storiesUIVisible, storiesPath, frameUrl }
+    return { storiesPath, frameUrl }
 }
