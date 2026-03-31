@@ -32,6 +32,7 @@
     "minimatch": "^9.0.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.0.0",
+    "@primevue/nuxt-module": "^4.5.4",
     "ufo": "^1.5.1"
   },
   "devDependencies": {
@@ -41,7 +42,6 @@
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.4.2",
     "@nuxt/test-utils": "^4.0.0",
-    "@primevue/nuxt-module": "^4.5.4",
     "@types/node": "^20.11.28",
     "changelogen": "^0.5.5",
     "eslint": "^9.0.0",
