@@ -1,6 +1,6 @@
 {
   "name": "@rezo-zero/nuxt-stories",
-  "version": "0.2.0",
+  "version": "0.2.0-next.0",
   "description": "Nuxt stories module - a kind of ultra light Storybook",
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "build": "nuxt-module-build build",
     "prepare": "nuxt-module-build build --stub && nuxt-module-build prepare",
     "release": "npm run lint && npm run build && changelogen --release && npm publish && git push --follow-tags",
+    "release:next": "npm run lint && npm run build && npm publish --tag next && git tag v0.2.0-next.0 && git push --follow-tags",
     "lint": "eslint .",
     "dev": "nuxt dev:stories"
   },
