@@ -183,6 +183,18 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             // Carry over CSS from the parent config so the frame renders with the same styles
             const cssEntries = nuxt.options.css.map((c: string) => JSON.stringify(c)).join(', ')
 
+            // Collect public dirs from shell-only layers so @nuxt/image IPX can find story assets.
+            // @nuxt/image v2 seeds IPX source dirs from nuxt.options._layers, but the spawned frame
+            // only has the playground layer — shell layers (e.g. stories/public/) are unknown to it.
+            // Passing them via image.dirs lets @nuxt/image register them alongside playground/public/.
+            const framePublicDir = path.join(frameAbsCwd, 'public')
+            const shellLayerPublicDirs = (nuxt.options._layers as unknown as Array<{ config: { rootDir?: string } }>)
+                .map(layer => path.join(layer.config.rootDir ?? frameAbsCwd, 'public'))
+                .filter(dir => dir !== framePublicDir && fs.existsSync(dir))
+            const imageExtraDirsEntry = shellLayerPublicDirs.length > 0
+                ? shellLayerPublicDirs.map(dir => JSON.stringify(dir)).join(', ')
+                : null
+
             // Carry over package-name modules from the merged config (e.g. @nuxt/icon from parent layers)
             // so that components registered by those modules are available inside the frame.
             // Relative/absolute paths are excluded: they either point to the stories module itself
@@ -217,6 +229,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                     `  pages: true,`,
                     `  stories: { mode: 'frame', storyRoots: [${JSON.stringify(frameAbsCwd)}] },`,
                     cssEntries ? `  css: [${cssEntries}],` : '',
+                    imageExtraDirsEntry ? `  image: { dirs: [${imageExtraDirsEntry}] },` : '',
                     `}`,
                 ].filter(Boolean).join('\n'),
             )
