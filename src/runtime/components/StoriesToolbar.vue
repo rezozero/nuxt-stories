@@ -14,7 +14,7 @@ const PRESETS: Preset[] = [
     { label: '100%', width: null, height: null },
 ]
 
-const props = defineProps<{
+defineProps<{
     iframeSrc: string
 }>()
 
@@ -52,9 +52,10 @@ function togglePresetMenu(event: Event) {
 const presetMenuModel = computed(() =>
     PRESETS.map((preset) => ({
         label: preset.label,
-        icon: viewportWidth.value === preset.width && viewportHeight.value === preset.height ? 'pi pi-check' : undefined,
+        icon:
+            viewportWidth.value === preset.width && viewportHeight.value === preset.height ? 'pi pi-check' : undefined,
         command: () => applyPreset(preset),
-    }))
+    })),
 )
 </script>
 
@@ -69,13 +70,7 @@ const presetMenuModel = computed(() =>
                     aria-controls="preset-menu"
                     @click="togglePresetMenu"
                 />
-                <PvMenu
-                    id="preset-menu"
-                    ref="presetMenuRef"
-                    :model="presetMenuModel"
-                    popup
-                    class="stories-menu"
-                />
+                <PvMenu id="preset-menu" ref="presetMenuRef" :model="presetMenuModel" popup class="stories-menu" />
                 <PvButton
                     v-if="viewportWidth !== null"
                     icon="pi pi-arrow-right-arrow-left"

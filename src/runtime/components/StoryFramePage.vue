@@ -7,10 +7,7 @@ const router = useRouter()
 onMounted(() => {
     // Signal to the parent shell that the frame is ready
     if (window.parent !== window) {
-        window.parent.postMessage(
-            { source: 'nuxt-stories-frame', type: 'FRAME_READY' },
-            window.location.origin,
-        )
+        window.parent.postMessage({ source: 'nuxt-stories-frame', type: 'FRAME_READY' }, window.location.origin)
     }
 
     // Listen for NAVIGATE messages from the shell (live control updates)

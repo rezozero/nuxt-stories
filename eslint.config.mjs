@@ -5,6 +5,6 @@ import eslintPluginPrettier from 'eslint-plugin-prettier/recommended'
 export default createConfigForNuxt({})
     .append({ ignores: ['dist', 'node_modules'] })
     .append(eslintPluginPrettier, {
-        files: ['**/*.stories.vue'],
+        files: ['**/*.stories.vue', '**/layouts/*.vue', '**/pages/*.vue'],
         rules: { 'vue/multi-word-component-names': 'off' },
     })

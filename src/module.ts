@@ -2,22 +2,15 @@ import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
 
-// Module-level guard: only one frame process at a time across Nuxt restarts
-let _frameProcess: ChildProcess | null = null
-
-import {
-    defineNuxtModule,
-    createResolver,
-    resolveFiles,
-    addComponent,
-    addImportsDir,
-    extendPages,
-} from '@nuxt/kit' 
+import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
 import type { NuxtPage } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
 import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
-import Aura from '@primeuix/themes/aura';
+import Aura from '@primeuix/themes/aura'
+
+// Module-level guard: only one frame process at a time across Nuxt restarts
+let _frameProcess: ChildProcess | null = null
 
 export interface NuxtStoriesOptions {
     /**
@@ -69,22 +62,14 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 autoImport: false,
                 components: {
                     prefix: 'pv',
-                    include: [
-                        'Tree', 
-                        'Button', 
-                        'InputText', 
-                        'Splitter', 
-                        'SplitterPanel', 
-                        'Toolbar', 
-                        'Menu'
-                    ]
+                    include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
                 },
                 options: {
                     theme: {
-                        preset: Aura
-                    }
-                }
-            }
+                        preset: Aura,
+                    },
+                },
+            },
         },
     },
     async setup(options, nuxt) {
@@ -110,8 +95,8 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         // merged into the artifact under nuxt-stories-frame/.  This gives the frame its own
         // _nuxt/ bundle (no asset collision) and a dedicated URL namespace that is clearly
         // distinct from the shell's /:story* catch-all routes.
-        const frameBasePath = process.env.NUXT_STORIES_FRAME_BASE_PATH
-            || (routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame')
+        const frameBasePath =
+            process.env.NUXT_STORIES_FRAME_BASE_PATH || (routeBasePath === '/' ? '/-frame' : routeBasePath + '-frame')
 
         // In a two-pass static build (GitHub Actions) the frame is generated with
         // NUXT_APP_BASE_URL=/nuxt-stories/<frame-base>/ so that base path is already
@@ -123,9 +108,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
         // In shell mode with a separate frame process the iframe points to the frame server URL.
         // When frameCwd is not set or in other modes the iframe uses same-origin routes.
-        const frameBaseUrl = mode === 'shell' && nuxt.options.dev && options.frameCwd
-            ? `http://localhost:${options.framePort ?? 3000}`
-            : undefined
+        const frameBaseUrl =
+            mode === 'shell' && nuxt.options.dev && options.frameCwd
+                ? `http://localhost:${options.framePort ?? 3000}`
+                : undefined
 
         // // Alias primevue to the module's own node_modules so runtime components
         // // can import from 'primevue/...' without requiring the consuming app to install it.
@@ -178,7 +164,10 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             // Write a frame config that points srcDir directly at the app source dir.
             // Using srcDir+rootDir (not extends) avoids the Nuxt 4 double-'app' layer issue
             // and prevents the shell nuxt.config from being inherited by the frame.
-            const frameSrcDir = path.resolve(frameAbsCwd, nuxt.options.srcDir.replace(nuxt.options.rootDir, '').replace(/^[\\/]/, '') || 'app')
+            const frameSrcDir = path.resolve(
+                frameAbsCwd,
+                nuxt.options.srcDir.replace(nuxt.options.rootDir, '').replace(/^[\\/]/, '') || 'app',
+            )
             const srcDir = fs.existsSync(frameSrcDir) ? frameSrcDir : frameAbsCwd
             // Carry over CSS from the parent config so the frame renders with the same styles
             const cssEntries = nuxt.options.css.map((c: string) => JSON.stringify(c)).join(', ')
@@ -189,11 +178,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             // Passing them via image.dirs lets @nuxt/image register them alongside playground/public/.
             const framePublicDir = path.join(frameAbsCwd, 'public')
             const shellLayerPublicDirs = (nuxt.options._layers as unknown as Array<{ config: { rootDir?: string } }>)
-                .map(layer => path.join(layer.config.rootDir ?? frameAbsCwd, 'public'))
-                .filter(dir => dir !== framePublicDir && fs.existsSync(dir))
-            const imageExtraDirsEntry = shellLayerPublicDirs.length > 0
-                ? shellLayerPublicDirs.map(dir => JSON.stringify(dir)).join(', ')
-                : null
+                .map((layer) => path.join(layer.config.rootDir ?? frameAbsCwd, 'public'))
+                .filter((dir) => dir !== framePublicDir && fs.existsSync(dir))
+            const imageExtraDirsEntry =
+                shellLayerPublicDirs.length > 0
+                    ? shellLayerPublicDirs.map((dir) => JSON.stringify(dir)).join(', ')
+                    : null
 
             // Carry over package-name modules from the merged config (e.g. @nuxt/icon from parent layers)
             // so that components registered by those modules are available inside the frame.
@@ -206,7 +196,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                     if (!name) return false
                     return !name.startsWith('.') && !name.startsWith('/')
                 })
-                .map(m => JSON.stringify(m))
+                .map((m) => JSON.stringify(m))
                 .join(', ')
 
             // Remove app CSS from the shell to prevent style pollution — the frame will load it
@@ -231,7 +221,9 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                     cssEntries ? `  css: [${cssEntries}],` : '',
                     imageExtraDirsEntry ? `  image: { dirs: [${imageExtraDirsEntry}] },` : '',
                     `}`,
-                ].filter(Boolean).join('\n'),
+                ]
+                    .filter(Boolean)
+                    .join('\n'),
             )
 
             if (_frameProcess) {
@@ -243,16 +235,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
             const nuxiBin = path.join(frameAbsCwd, 'node_modules', '.bin', 'nuxi')
 
-            _frameProcess = spawn(
-                nuxiBin,
-                ['dev', frameTmpDir, '--port', String(framePort)],
-                {
-                    cwd: frameAbsCwd,
-                    stdio: 'inherit',
-                    shell: false,
-                    env: { ...process.env },
-                },
-            )
+            _frameProcess = spawn(nuxiBin, ['dev', frameTmpDir, '--port', String(framePort)], {
+                cwd: frameAbsCwd,
+                stdio: 'inherit',
+                shell: false,
+                env: { ...process.env },
+            })
 
             _frameProcess.on('error', (err) => {
                 console.error('[nuxt-stories] Frame process error:', err)
@@ -403,9 +391,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 nitroConfig.prerender ||= {}
                 nitroConfig.prerender.routes = [
                     ...(nitroConfig.prerender.routes ?? []),
-                    ...(mode === 'shell' || mode === 'all'
-                        ? storyPaths.map((p) => joinURL(routeBasePath, p))
-                        : []),
+                    ...(mode === 'shell' || mode === 'all' ? storyPaths.map((p) => joinURL(routeBasePath, p)) : []),
                     ...(mode === 'frame' || mode === 'all'
                         ? storyPaths.map((p) => joinURL(effectiveFrameBasePath, p))
                         : []),

@@ -5,7 +5,5 @@ const currentDir = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
     modules: ['@nuxt/icon', '@nuxt/image'],
-    css: [
-        join(currentDir, './app/assets/css/main.css')
-    ],
+    css: [join(currentDir, './app/assets/css/main.css')],
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { joinURL } from 'ufo';
+import { joinURL } from 'ufo'
 
 const { src } = defineProps({
     src: {
@@ -8,7 +8,7 @@ const { src } = defineProps({
     },
 })
 
-const internalSrc = computed(() => joinURL(useRuntimeConfig().app.baseURL, src));
+const internalSrc = computed(() => joinURL(useRuntimeConfig().app.baseURL, src))
 </script>
 
 <template>

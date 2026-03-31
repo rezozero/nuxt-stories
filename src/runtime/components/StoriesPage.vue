@@ -57,7 +57,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <PvSplitter class="nuxt-stories-shell stories-page" stateKey="nav">
+    <PvSplitter class="nuxt-stories-shell stories-page" state-key="nav">
         <PvSplitterPanel :size="20" :min-size="10">
             <StoriesNav />
         </PvSplitterPanel>
@@ -76,7 +76,7 @@ onBeforeUnmount(() => {
         <StoryControlsPanel
             v-if="controlsSchema"
             :schema="controlsSchema"
-            :values="(route.query as Record<string, string>)"
+            :values="route.query as Record<string, string>"
             @change="onControlChange"
         />
     </PvSplitter>
@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 .stories-page,
-.stories-menu  {
+.stories-menu {
     font-family: Helvetica, sans-serif;
     font-size: 14px;
 }

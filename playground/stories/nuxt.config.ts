@@ -1,8 +1,6 @@
 export default defineNuxtConfig({
     extends: ['../'],
-    modules: [
-        '../../src/module'
-    ],
+    modules: ['../../src/module'],
     stories: {
         mode: 'shell',
         frameCwd: '../',
