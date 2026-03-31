@@ -57,3 +57,10 @@ Temporary Items
 
 # Nuxt stories generated files
 .nuxt-stories
+
+.claude/secrets
+.claude/agent-memory
+.claude/memory
+.claude/cache
+.claude/*.local
+.claude/*.local.json
