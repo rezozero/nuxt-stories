@@ -1,7 +1,6 @@
 import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
-
 import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
 import type { NuxtPage } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
@@ -55,22 +54,29 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         mode: 'all',
         framePort: 3000,
     },
-    moduleDependencies: {
-        '@primevue/nuxt-module': {
-            version: '^4',
-            defaults: {
-                autoImport: false,
-                components: {
-                    prefix: 'pv',
-                    include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
-                },
-                options: {
-                    theme: {
-                        preset: Aura,
+    moduleDependencies(nuxt) {
+        const mode =
+            (process.env.NUXT_STORIES_MODE as string | undefined) ||
+            (nuxt.options as unknown as { stories?: { mode?: string } }).stories?.mode ||
+            'all'
+        if (mode === 'frame') return {}
+        return {
+            '@primevue/nuxt-module': {
+                version: '^4',
+                defaults: {
+                    autoImport: false,
+                    components: {
+                        prefix: 'pv',
+                        include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
+                    },
+                    options: {
+                        theme: {
+                            preset: Aura,
+                        },
                     },
                 },
             },
-        },
+        }
     },
     async setup(options, nuxt) {
         if (!options.enabled) return
@@ -112,16 +118,6 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             mode === 'shell' && nuxt.options.dev && options.frameCwd
                 ? `http://localhost:${options.framePort ?? 3000}`
                 : undefined
-
-        // // Alias primevue to the module's own node_modules so runtime components
-        // // can import from 'primevue/...' without requiring the consuming app to install it.
-        // const primeVueDir = path.dirname(
-        //     resolveModule('primevue/package.json', { paths: [resolver.resolve('.')] }),
-        // )
-        // nuxt.options.alias['primevue'] = primeVueDir
-
-        // // Register the PrimeVue shell plugin (unstyled, no CSS contamination)
-        // addPlugin(resolver.resolve('./runtime/plugins/primevue'))
 
         // Expose base paths so runtime composables can compute URLs dynamically
         nuxt.options.runtimeConfig.public.nuxtStories = {
