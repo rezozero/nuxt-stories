@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
 import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
-import type { NuxtPage } from '@nuxt/schema'
+import type { NuxtPage, ModuleDependencies, NuxtModule } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
 import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
@@ -44,7 +44,7 @@ export interface NuxtStoriesOptions {
     enabled?: boolean
 }
 
-export default defineNuxtModule<NuxtStoriesOptions>({
+const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOptions>({
     meta: {
         name: 'nuxt-stories',
         configKey: 'stories',
@@ -54,11 +54,12 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         mode: 'all',
         framePort: 3000,
     },
-    moduleDependencies(nuxt) {
+    moduleDependencies(nuxt): ModuleDependencies {
         const mode =
             (process.env.NUXT_STORIES_MODE as string | undefined) ||
             (nuxt.options as unknown as { stories?: { mode?: string } }).stories?.mode ||
             'all'
+
         if (mode === 'frame') return {}
         return {
             '@primevue/nuxt-module': {
@@ -396,3 +397,5 @@ export default defineNuxtModule<NuxtStoriesOptions>({
         })
     },
 })
+
+export default _module
