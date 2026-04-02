@@ -6,4 +6,5 @@ export default defineNuxtConfig({
         frameCwd: '../',
         framePort: 3000,
     },
+    ssr: false,
 })

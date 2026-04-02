@@ -183,6 +183,46 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
             // Remove app CSS from the shell to prevent style pollution — inherited by the frame via extends
             nuxt.options.css = []
 
+            // Keys from the shell's nuxt config that must NOT be forwarded to the frame.
+            // Everything else is inherited so that top-level options like `ssr`, `experimental`,
+            // `app`, `vite`, etc. propagate automatically.
+            const FRAME_EXCLUDED_CONFIG_KEYS = new Set([
+                // Frame-incompatible or explicitly overridden below
+                'moduleDependencies',
+                'modules',
+                'css',
+                'extends',
+                'theme',
+                'rootDir',
+                'srcDir',
+                'buildDir',
+                'workspaceDir',
+                'stories',
+                'pages',
+                'nitro',
+                // Nuxt internals
+                '_layers',
+                '_installedModules',
+                '_modules',
+                '_ignore',
+            ])
+
+            // Read the shell app's raw user config (first layer = the shell's own nuxt.config).
+            // This gives us user-defined values before Nuxt merges in its defaults.
+            const shellRawConfig = ((nuxt.options._layers as unknown as Array<{ config: Record<string, unknown> }>)[0]
+                ?.config ?? {}) as Record<string, unknown>
+
+            const frameInheritedLines = Object.entries(shellRawConfig)
+                .filter(([key]) => !FRAME_EXCLUDED_CONFIG_KEYS.has(key))
+                .flatMap(([key, value]) => {
+                    try {
+                        return [`  ${key}: ${JSON.stringify(value)},`]
+                    } catch {
+                        // Skip values that are not JSON-serializable (functions, class instances, etc.)
+                        return []
+                    }
+                })
+
             // Clear old .nuxt cache so the frame picks up the new config on restart
             const frameCacheDir = path.join(frameTmpDir, '.nuxt')
             if (fs.existsSync(frameCacheDir)) {
@@ -194,6 +234,8 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
                 frameTmpConfig,
                 [
                     `export default {`,
+                    // Inherited shell options first — explicit entries below override them
+                    ...frameInheritedLines,
                     `  rootDir: ${JSON.stringify(frameTmpDir)},`,
                     `  extends: [${JSON.stringify(frameAbsCwd)}],`,
                     `  modules: [${JSON.stringify(moduleEntry)}],`,
