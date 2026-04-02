@@ -157,21 +157,19 @@ export default defineNuxtModule<NuxtStoriesOptions>({
             // Use the actual running module file path (works in both stub and built mode)
             const moduleEntry = new URL(import.meta.url).pathname
 
-            // Write a frame config that points srcDir directly at the app source dir.
-            // Using srcDir+rootDir (not extends) avoids the Nuxt 4 double-'app' layer issue
-            // and prevents the shell nuxt.config from being inherited by the frame.
-            const frameSrcDir = path.resolve(
-                frameAbsCwd,
-                nuxt.options.srcDir.replace(nuxt.options.rootDir, '').replace(/^[\\/]/, '') || 'app',
-            )
-            const srcDir = fs.existsSync(frameSrcDir) ? frameSrcDir : frameAbsCwd
-            // Carry over CSS from the parent config so the frame renders with the same styles
-            const cssEntries = nuxt.options.css.map((c: string) => JSON.stringify(c)).join(', ')
+            // The generated config lives in frameTmpDir (.nuxt-stories/) and extends the frame
+            // app directory. Using extends (not srcDir+rootDir pointing at frameAbsCwd) lets
+            // all layers declared in the frame app's nuxt.config cascade automatically —
+            // components, composables, aliases, CSS, modules, etc. are all inherited.
+            //
+            // Shell config is NOT pulled in: the dependency is one-way (shell extends frame app),
+            // so extending frameAbsCwd never reaches the shell's nuxt.config.
+            //
+            // The Nuxt 4 double-'app' issue is avoided because rootDir (frameTmpDir) ≠ extends
+            // target (frameAbsCwd), so Nuxt resolves srcDir for each layer independently.
 
             // Collect public dirs from shell-only layers so @nuxt/image IPX can find story assets.
-            // @nuxt/image v2 seeds IPX source dirs from nuxt.options._layers, but the spawned frame
-            // only has the playground layer — shell layers (e.g. stories/public/) are unknown to it.
-            // Passing them via image.dirs lets @nuxt/image register them alongside playground/public/.
+            // Frame app layers are covered by extends; only shell-exclusive layers need explicit forwarding.
             const framePublicDir = path.join(frameAbsCwd, 'public')
             const shellLayerPublicDirs = (nuxt.options._layers as unknown as Array<{ config: { rootDir?: string } }>)
                 .map((layer) => path.join(layer.config.rootDir ?? frameAbsCwd, 'public'))
@@ -181,21 +179,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                     ? shellLayerPublicDirs.map((dir) => JSON.stringify(dir)).join(', ')
                     : null
 
-            // Carry over package-name modules from the merged config (e.g. @nuxt/icon from parent layers)
-            // so that components registered by those modules are available inside the frame.
-            // Relative/absolute paths are excluded: they either point to the stories module itself
-            // or would resolve incorrectly from the frame's rootDir.
-            // Function-based (inline) modules are also skipped as they can't be serialised.
-            const parentModuleEntries = (nuxt.options.modules as unknown[])
-                .filter((m) => {
-                    const name = typeof m === 'string' ? m : Array.isArray(m) ? String(m[0]) : null
-                    if (!name) return false
-                    return !name.startsWith('.') && !name.startsWith('/')
-                })
-                .map((m) => JSON.stringify(m))
-                .join(', ')
-
-            // Remove app CSS from the shell to prevent style pollution — the frame will load it
+            // Remove app CSS from the shell to prevent style pollution — inherited by the frame via extends
             nuxt.options.css = []
 
             // Clear old .nuxt cache so the frame picks up the new config on restart
@@ -209,12 +193,11 @@ export default defineNuxtModule<NuxtStoriesOptions>({
                 frameTmpConfig,
                 [
                     `export default {`,
-                    `  rootDir: ${JSON.stringify(frameAbsCwd)},`,
-                    `  srcDir: ${JSON.stringify(srcDir)},`,
-                    `  modules: [${JSON.stringify(moduleEntry)}${parentModuleEntries ? ', ' + parentModuleEntries : ''}],`,
+                    `  rootDir: ${JSON.stringify(frameTmpDir)},`,
+                    `  extends: [${JSON.stringify(frameAbsCwd)}],`,
+                    `  modules: [${JSON.stringify(moduleEntry)}],`,
                     `  pages: true,`,
                     `  stories: { mode: 'frame', storyRoots: [${JSON.stringify(frameAbsCwd)}] },`,
-                    cssEntries ? `  css: [${cssEntries}],` : '',
                     imageExtraDirsEntry ? `  image: { dirs: [${imageExtraDirsEntry}] },` : '',
                     `}`,
                 ]
