@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
 
 <template>
     <PvSplitter class="nuxt-stories-shell stories-page" state-key="nav">
-        <PvSplitterPanel :size="20" :min-size="10">
+        <PvSplitterPanel :size="20" :min-size="10" class="stories-nav">
             <StoriesNav />
         </PvSplitterPanel>
         <PvSplitterPanel :size="80" class="stories-main">
@@ -96,6 +96,12 @@ onBeforeUnmount(() => {
 .stories-page a {
     text-decoration: none;
     font-size: inherit;
+}
+
+.stories-nav {
+    position: sticky;
+    top: 0;
+    height: 100vh;
 }
 
 .stories-main {
