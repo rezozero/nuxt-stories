@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "build": "nuxt-module-build build",
-    "prepare": "nuxt-module-build build --stub && nuxt-module-build prepare",
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare",
     "release": "npm run lint && npm run build && changelogen --release && npm publish && git push --follow-tags",
     "release:next": "npm run lint && npm run build && npm publish --tag next && git tag v$(node -p \"require('./package.json').version\") && git push --set-upstream origin HEAD --follow-tags",
     "lint": "eslint .",
