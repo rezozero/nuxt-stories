@@ -83,7 +83,7 @@ export default defineNuxtModule<NuxtStoriesOptions>({
 
         const resolver = createResolver(import.meta.url)
         const pattern = options.pattern || '**/*.stories.vue'
-        const root = options.root || ['components', 'stories']
+        const root = options.root || ['app', 'components', 'stories']
 
         // Allow the spawned frame process (or CI) to override mode via env var
         const mode = (process.env.NUXT_STORIES_MODE as 'shell' | 'frame' | 'all' | undefined) || options.mode || 'all'
