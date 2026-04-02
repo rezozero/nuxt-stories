@@ -102,6 +102,7 @@ onBeforeUnmount(() => {
     position: sticky;
     top: 0;
     height: 100vh;
+    overflow: auto;
 }
 
 .stories-main {
