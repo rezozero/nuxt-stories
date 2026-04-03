@@ -103,11 +103,18 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
 
         // @primevue/nuxt-module generates code that imports from 'primevue', '@primeuix/themes', etc.
         // Those packages live in nuxt-stories' own node_modules, not the consumer's.
-        // Add that directory to modulesDir so Nuxt/Vite can resolve them.
+        // • alias        → Vite client/SSR: virtual modules (virtual:#primevue-style) resolve
+        //                  subpath imports (primevue/button/style) via explicit directory mapping
+        // • modulesDir   → Vite bare-import fallback
+        // • nitro.nodeModulesDirs → Nitro server bundle + Node.js dev runtime resolution
+        let storiesNodeModules: string | null = null
         if (mode !== 'frame') {
             try {
                 const primevuePkg = fileURLToPath(import.meta.resolve('primevue/package.json'))
-                const storiesNodeModules = path.dirname(path.dirname(primevuePkg))
+                const primevueDir = path.dirname(primevuePkg)
+                storiesNodeModules = path.dirname(primevueDir)
+                // Alias so Vite resolves primevue/* subpath imports from the virtual module context
+                nuxt.options.alias['primevue'] = primevueDir
                 if (!nuxt.options.modulesDir.includes(storiesNodeModules)) {
                     nuxt.options.modulesDir.push(storiesNodeModules)
                 }
@@ -433,6 +440,12 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
 
         // NITRO CONFIG — serve the module's static public assets (stories.css, etc.)
         nuxt.hook('nitro:config', (nitroConfig) => {
+            // Expose nuxt-stories' node_modules to Nitro so primevue and related
+            // packages can be resolved in the server bundle and at Node.js dev runtime.
+            if (storiesNodeModules) {
+                nitroConfig.nodeModulesDirs = [...(nitroConfig.nodeModulesDirs || []), storiesNodeModules]
+            }
+
             // Register story paths for static generation (nuxi generate).
             // Done here (not inside extendPages) to guarantee the routes are visible
             // to Nitro — pages:extend is awaited before nitro:config fires.
