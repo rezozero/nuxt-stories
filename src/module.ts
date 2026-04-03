@@ -2,6 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
 import { fileURLToPath } from 'url'
+import { createRequire } from 'module'
 import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
 import type { NuxtPage, ModuleDependencies, NuxtModule } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
@@ -110,8 +111,8 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         let storiesNodeModules: string | null = null
         if (mode !== 'frame') {
             try {
-                const primevuePkg = fileURLToPath(import.meta.resolve('primevue/package.json'))
-                const primevueDir = path.dirname(primevuePkg)
+                const _require = createRequire(import.meta.url)
+                const primevueDir = path.dirname(_require.resolve('primevue/package.json'))
                 storiesNodeModules = path.dirname(primevueDir)
                 // Alias so Vite resolves primevue/* subpath imports from the virtual module context
                 nuxt.options.alias['primevue'] = primevueDir
