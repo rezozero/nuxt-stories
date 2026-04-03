@@ -101,6 +101,21 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         // Allow the spawned frame process (or CI) to override mode via env var
         const mode = (process.env.NUXT_STORIES_MODE as 'shell' | 'frame' | 'all' | undefined) || options.mode || 'all'
 
+        // @primevue/nuxt-module generates code that imports from 'primevue', '@primeuix/themes', etc.
+        // Those packages live in nuxt-stories' own node_modules, not the consumer's.
+        // Add that directory to modulesDir so Nuxt/Vite can resolve them.
+        if (mode !== 'frame') {
+            try {
+                const primevuePkg = fileURLToPath(import.meta.resolve('primevue/package.json'))
+                const storiesNodeModules = path.dirname(path.dirname(primevuePkg))
+                if (!nuxt.options.modulesDir.includes(storiesNodeModules)) {
+                    nuxt.options.modulesDir.push(storiesNodeModules)
+                }
+            } catch {
+                // ignore
+            }
+        }
+
         // Always enable the pages module – the module adds routes via extendPages
         // regardless of whether an app/pages/ directory exists.
         nuxt.options.pages = true
