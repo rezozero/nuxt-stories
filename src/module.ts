@@ -1,8 +1,16 @@
 import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
-import { createRequire } from 'module'
-import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
+import { fileURLToPath } from 'url'
+import {
+    defineNuxtModule,
+    createResolver,
+    resolveFiles,
+    addComponent,
+    addImportsDir,
+    extendPages,
+    resolveModule,
+} from '@nuxt/kit'
 import type { NuxtPage, NuxtModule } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
@@ -55,22 +63,33 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         mode: 'all',
         framePort: 3000,
     },
-    moduleDependencies: {
-        '@primevue/nuxt-module': {
-            optional: true,
-            defaults: {
-                autoImport: false,
-                components: {
-                    prefix: 'pv',
-                    include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
-                },
-                options: {
-                    theme: {
-                        preset: Aura,
+    moduleDependencies(nuxt) {
+        const mode =
+            (process.env.NUXT_STORIES_MODE as string | undefined) ||
+            (nuxt.options as unknown as { stories?: { mode?: string } }).stories?.mode ||
+            'all'
+        if (mode === 'frame') return {}
+
+        // pnpm isolation means @primevue/nuxt-module is not in the consumer's node_modules,
+        // only in nuxt-stories' own. Passing an absolute path as the key bypasses that:
+        // resolveModuleWithOptions() treats any truthy string as a valid module specifier,
+        // and loadNuxtModuleInstance() loads absolute paths directly.
+        try {
+            return {
+                [fileURLToPath(import.meta.resolve('@primevue/nuxt-module'))]: {
+                    defaults: {
+                        autoImport: false,
+                        components: {
+                            prefix: 'pv',
+                            include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
+                        },
+                        options: { theme: { preset: Aura } },
                     },
                 },
-            },
-        },
+            }
+        } catch {
+            return {}
+        }
     },
     async setup(options, nuxt) {
         if (!options.enabled) return
@@ -88,10 +107,9 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         // • build.transpile → prevents Vite AND Nitro from externalising them; Nuxt propagates
         //                     transpile entries to nitro.externals.inline automatically
         if (mode !== 'frame') {
-            const _require = createRequire(import.meta.url)
             for (const pkg of ['primevue', '@primeuix/themes', 'primeicons']) {
                 try {
-                    nuxt.options.alias[pkg] = path.dirname(_require.resolve(`${pkg}/package.json`))
+                    nuxt.options.alias[pkg] = path.dirname(resolveModule(`${pkg}/package.json`))
                 } catch {
                     // package not resolvable from this context – skip
                 }
