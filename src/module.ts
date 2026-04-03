@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
+import { fileURLToPath } from 'url'
 import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
 import type { NuxtPage, ModuleDependencies, NuxtModule } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
@@ -61,9 +62,20 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
             'all'
 
         if (mode === 'frame') return {}
+
+        // Resolve @primevue/nuxt-module from nuxt-stories' own node_modules so the
+        // consuming app doesn't need to install it. Using an absolute path as the key
+        // bypasses pnpm's strict isolation while still going through moduleDependencies.
+        // import.meta.resolve follows ESM exports and returns the .mjs entry point.
+        let primevuePath: string
+        try {
+            primevuePath = fileURLToPath(import.meta.resolve('@primevue/nuxt-module'))
+        } catch {
+            return {}
+        }
+
         return {
-            '@primevue/nuxt-module': {
-                version: '^4',
+            [primevuePath]: {
                 defaults: {
                     autoImport: false,
                     components: {
