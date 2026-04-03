@@ -1,10 +1,9 @@
 import path from 'path'
 import fs from 'fs'
 import { spawn, type ChildProcess } from 'child_process'
-import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
 import { defineNuxtModule, createResolver, resolveFiles, addComponent, addImportsDir, extendPages } from '@nuxt/kit'
-import type { NuxtPage, ModuleDependencies, NuxtModule } from '@nuxt/schema'
+import type { NuxtPage, NuxtModule } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { minimatch } from 'minimatch'
 import { pascalToKebabCase } from './runtime/utils/string/pascal-to-kebab-case'
@@ -56,41 +55,22 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         mode: 'all',
         framePort: 3000,
     },
-    moduleDependencies(nuxt): ModuleDependencies {
-        const mode =
-            (process.env.NUXT_STORIES_MODE as string | undefined) ||
-            (nuxt.options as unknown as { stories?: { mode?: string } }).stories?.mode ||
-            'all'
-
-        if (mode === 'frame') return {}
-
-        // Resolve @primevue/nuxt-module from nuxt-stories' own node_modules so the
-        // consuming app doesn't need to install it. Using an absolute path as the key
-        // bypasses pnpm's strict isolation while still going through moduleDependencies.
-        // import.meta.resolve follows ESM exports and returns the .mjs entry point.
-        let primevuePath: string
-        try {
-            primevuePath = fileURLToPath(import.meta.resolve('@primevue/nuxt-module'))
-        } catch {
-            return {}
-        }
-
-        return {
-            [primevuePath]: {
-                defaults: {
-                    autoImport: false,
-                    components: {
-                        prefix: 'pv',
-                        include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
-                    },
-                    options: {
-                        theme: {
-                            preset: Aura,
-                        },
+    moduleDependencies: {
+        '@primevue/nuxt-module': {
+            optional: true,
+            defaults: {
+                autoImport: false,
+                components: {
+                    prefix: 'pv',
+                    include: ['Tree', 'Button', 'InputText', 'Splitter', 'SplitterPanel', 'Toolbar', 'Menu'],
+                },
+                options: {
+                    theme: {
+                        preset: Aura,
                     },
                 },
             },
-        }
+        },
     },
     async setup(options, nuxt) {
         if (!options.enabled) return
@@ -104,23 +84,20 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
 
         // @primevue/nuxt-module generates code that imports from 'primevue', '@primeuix/themes', etc.
         // Those packages live in nuxt-stories' own node_modules, not the consumer's.
-        // • alias        → Vite client/SSR: virtual modules (virtual:#primevue-style) resolve
-        //                  subpath imports (primevue/button/style) via explicit directory mapping
-        // • modulesDir   → Vite bare-import fallback
-        // • nitro.nodeModulesDirs → Nitro server bundle + Node.js dev runtime resolution
-        let storiesNodeModules: string | null = null
+        // • alias         → tells Vite where to find the package (resolves bare + subpath imports)
+        // • build.transpile → prevents Vite AND Nitro from externalising them; Nuxt propagates
+        //                     transpile entries to nitro.externals.inline automatically
         if (mode !== 'frame') {
-            try {
-                const _require = createRequire(import.meta.url)
-                const primevueDir = path.dirname(_require.resolve('primevue/package.json'))
-                storiesNodeModules = path.dirname(primevueDir)
-                // Alias so Vite resolves primevue/* subpath imports from the virtual module context
-                nuxt.options.alias['primevue'] = primevueDir
-                if (!nuxt.options.modulesDir.includes(storiesNodeModules)) {
-                    nuxt.options.modulesDir.push(storiesNodeModules)
+            const _require = createRequire(import.meta.url)
+            for (const pkg of ['primevue', '@primeuix/themes', 'primeicons']) {
+                try {
+                    nuxt.options.alias[pkg] = path.dirname(_require.resolve(`${pkg}/package.json`))
+                } catch {
+                    // package not resolvable from this context – skip
                 }
-            } catch {
-                // ignore
+                if (!nuxt.options.build.transpile.includes(pkg)) {
+                    nuxt.options.build.transpile.push(pkg)
+                }
             }
         }
 
@@ -441,12 +418,6 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
 
         // NITRO CONFIG — serve the module's static public assets (stories.css, etc.)
         nuxt.hook('nitro:config', (nitroConfig) => {
-            // Expose nuxt-stories' node_modules to Nitro so primevue and related
-            // packages can be resolved in the server bundle and at Node.js dev runtime.
-            if (storiesNodeModules) {
-                nitroConfig.nodeModulesDirs = [...(nitroConfig.nodeModulesDirs || []), storiesNodeModules]
-            }
-
             // Register story paths for static generation (nuxi generate).
             // Done here (not inside extendPages) to guarantee the routes are visible
             // to Nitro — pages:extend is awaited before nitro:config fires.
