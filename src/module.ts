@@ -77,6 +77,18 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         // • alias         → tells Vite where to find the package (resolves bare + subpath imports)
         // • build.transpile → prevents Vite AND Nitro from externalising them; Nuxt propagates
         //                     transpile entries to nitro.externals.inline automatically
+        // In frame mode, suppress the devtools overlay when running inside the shell's iframe.
+        // Must be an inline <head> script — Nuxt plugins run too late and devtools initialises
+        // before them, causing a cross-origin error when it tries to read window.parent.__NUXT_DEVTOOLS_DISABLE__.
+        // When the frame URL is opened directly window.self === window.top so the flag is never set.
+        if (mode === 'frame') {
+            nuxt.options.app.head.script ||= []
+            nuxt.options.app.head.script.unshift({
+                innerHTML: `if(window.self!==window.top)window.__NUXT_DEVTOOLS_DISABLE__=true`,
+                tagPosition: 'head',
+            })
+        }
+
         if (mode !== 'frame') {
             // PrimeVue is registered via a client-only plugin to avoid any server-side
             // imports (which would break Nitro dev resolution via Node.js native ESM).
