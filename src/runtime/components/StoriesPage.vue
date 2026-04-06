@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
         <PvSplitterPanel :size="20" :min-size="10" class="stories-nav">
             <StoriesNav />
         </PvSplitterPanel>
-        <PvSplitterPanel :size="80" class="stories-main">
+        <PvSplitterPanel :size="80" class="stories-page__main">
             <StoriesToolbar :iframe-src="iframeSrc" @update:viewport-style="iframeStyle = $event" />
             <div class="stories-page__frame-wrap">
                 <iframe
@@ -98,14 +98,12 @@ onBeforeUnmount(() => {
     font-size: inherit;
 }
 
-.stories-nav {
+.stories-page__nav {
     position: sticky;
     top: 0;
-    height: 100vh;
-    overflow: auto;
 }
 
-.stories-main {
+.stories-page__main {
     flex: 1;
     min-width: 0;
     display: flex;

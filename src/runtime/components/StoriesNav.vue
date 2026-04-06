@@ -111,13 +111,22 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <PvTree
-        :value="filteredItemList"
-        selection-mode="single"
-        :selection-keys="selectedKey"
-        :expanded-keys="expandedKeys"
-        filter
-        class="stories-nav__tree"
-        @node-select="onNodeSelect"
-    />
+    <div class="stories-nav">
+        <PvTree
+            :value="filteredItemList"
+            selection-mode="single"
+            :selection-keys="selectedKey"
+            :expanded-keys="expandedKeys"
+            filter
+            class="stories-nav"
+            @node-select="onNodeSelect"
+        />
+    </div>
 </template>
+
+<style lang="scss">
+.stories-nav {
+    height: 100vh;
+    overflow: auto;
+}
+</style>
