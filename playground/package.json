@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "stories": "NUXT_STORIES=1 nuxt dev stories --port 6006"
+    "stories": "nuxt dev stories"
   },
   "dependencies": {
     "@nuxt/icon": "2.2.1",
