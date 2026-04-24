@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStories } from '../composables/use-stories'
 
@@ -71,7 +71,9 @@ const filteredItemList = computed((): TreeNode[] => {
 })
 
 // Only expand folders that are ancestors of the currently selected leaf
-const expandedKeys = computed((): Record<string, boolean> => {
+const expandedKeys = ref<Record<string, boolean>>({})
+
+function computeExpandedKeys(): Record<string, boolean> {
     const keys: Record<string, boolean> = {}
     function findPath(nodes: TreeNode[]): boolean {
         for (const node of nodes) {
@@ -88,13 +90,25 @@ const expandedKeys = computed((): Record<string, boolean> => {
     }
     findPath(itemList.value)
     return keys
-})
+}
+
+watch(
+    () => route.path,
+    () => {
+        expandedKeys.value = { ...expandedKeys.value, ...computeExpandedKeys() }
+    },
+    { immediate: true },
+)
 
 // Highlight the active route — leaf key === route.path
 const selectedKey = computed((): Record<string, boolean> => ({ [route.path]: true }))
 
 function onNodeSelect(node: TreeNode) {
     if (node.data?.to) router.push(node.data.to)
+    else if (node.children) {
+        // Toggle folder expansion on click
+        expandedKeys.value = { ...expandedKeys.value, [node.key]: !expandedKeys.value[node.key] }
+    }
 }
 
 function onKeyUp(event: KeyboardEvent) {
@@ -113,10 +127,10 @@ onBeforeUnmount(() => {
 <template>
     <div class="stories-nav">
         <PvTree
+            v-model:expanded-keys="expandedKeys"
             :value="filteredItemList"
             selection-mode="single"
             :selection-keys="selectedKey"
-            :expanded-keys="expandedKeys"
             filter
             class="stories-nav"
             @node-select="onNodeSelect"
