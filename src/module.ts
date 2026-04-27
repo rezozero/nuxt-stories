@@ -136,7 +136,7 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
         // When frameCwd is not set or in other modes the iframe uses same-origin routes.
         const frameBaseUrl =
             mode === 'shell' && nuxt.options.dev && options.frameCwd
-                ? `http://localhost:${options.framePort ?? (nuxt.options.devServer.port + 1)}`
+                ? `http://localhost:${options.framePort ?? nuxt.options.devServer.port + 1}`
                 : undefined
 
         // Expose base paths so runtime composables can compute URLs dynamically
@@ -173,7 +173,7 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
             const frameAbsCwd = path.resolve(nuxt.options.rootDir, options.frameCwd)
             const frameTmpDir = path.join(frameAbsCwd, '.nuxt-stories')
             const frameTmpConfig = path.join(frameTmpDir, 'nuxt.config.mjs')
-            const framePort = options.framePort ?? (nuxt.options.devServer.port + 1)
+            const framePort = options.framePort ?? nuxt.options.devServer.port + 1
             // Use the actual running module file path (works in both stub and built mode)
             const moduleEntry = new URL(import.meta.url).pathname
 
