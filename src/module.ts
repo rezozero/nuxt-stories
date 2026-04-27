@@ -10,6 +10,7 @@ import {
     addImportsDir,
     extendPages,
     resolveModule,
+    useLogger,
 } from '@nuxt/kit'
 import type { NuxtPage, NuxtModule } from '@nuxt/schema'
 import { joinURL, withoutLeadingSlash, withoutTrailingSlash } from 'ufo'
@@ -293,6 +294,15 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
             nuxt.hook('close', () => {
                 _frameProcess?.kill()
                 _frameProcess = null
+            })
+        }
+
+        if (nuxt.options.dev && mode !== 'frame') {
+            const logger = useLogger('nuxt-stories')
+            nuxt.hook('listen', (_server, listener) => {
+                const base = (listener.url as string).replace(/\/$/, '')
+                const storiesUrl = base + (routeBasePath === '/' ? '' : routeBasePath)
+                logger.box(`nuxt-stories\n\n  ➜  ${storiesUrl}`)
             })
         }
 
