@@ -64,12 +64,15 @@ onBeforeUnmount(() => {
         <PvSplitterPanel :size="80" class="stories-page__main">
             <StoriesToolbar :iframe-src="iframeSrc" @update:viewport-style="iframeStyle = $event" />
             <div class="stories-page__frame-wrap">
+                <!-- In dev, the frame app runs on its own port, another origin: without `allow`, the media of a story
+                     and their own iframes (YouTube, Vimeo…) get neither autoplay nor fullscreen -->
                 <iframe
                     ref="iframeRef"
                     :src="iframeSrc"
                     :style="iframeStyle"
                     class="stories-page__frame"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                 />
             </div>
         </PvSplitterPanel>
