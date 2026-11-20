@@ -106,7 +106,7 @@ useMockRequest(
 - Resolvers run on each request: reactive values read inside them (props, `useStoryControls()`) are up to date.
 - Unmatched requests go to the network (`onUnhandledRequest: 'bypass'`).
 
-See `playground/stories/app/components/mock/PaginatedList.stories.vue` for a paginated list with a configurable delay.
+See `playground/stories/app/components/VPaginatedList/Default.stories.vue`: it mocks the requests of the `VPaginatedList` component, with a configurable delay.
 
 ### Limits
 
