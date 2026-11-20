@@ -56,6 +56,13 @@ export interface NuxtStoriesOptions {
      * @default true
      */
     mock?: boolean
+    /**
+     * (shell mode) Server-side render the stories in the frame, overriding the `ssr` option
+     * inherited from the shell. Lets stories test server rendering and hydration, with
+     * requests mocked during SSR too.
+     * @default undefined (inherit the shell's `ssr`)
+     */
+    frameSsr?: boolean
     route?: NuxtPage
     root?: string | string[]
     pattern?: string | string[]
@@ -269,6 +276,7 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
                     `  extends: [${JSON.stringify(frameAbsCwd)}],`,
                     `  modules: [${JSON.stringify(moduleEntry)}],`,
                     `  pages: true,`,
+                    options.frameSsr !== undefined ? `  ssr: ${options.frameSsr},` : '',
                     `  stories: { mode: 'frame', storyRoots: [${JSON.stringify(frameAbsCwd)}] },`,
                     imageExtraDirsEntry ? `  image: { dirs: [${imageExtraDirsEntry}] },` : '',
                     `}`,
@@ -406,6 +414,11 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
             mockWorkerDir = path.dirname(workerTemplate.dst)
 
             addPlugin({ src: resolver.resolve('./runtime/mock/plugin.client'), mode: 'client' })
+            addPlugin({ src: resolver.resolve('./runtime/mock/plugin.server'), mode: 'server' })
+
+            // The server mock resolves the handlers of the render issuing each request:
+            // useNuxtApp() must stay bound to that render across awaits.
+            nuxt.options.experimental.asyncContext = true
             addImports({ name: 'useMockRequest', from: resolver.resolve('./runtime/mock/use-mock-request') })
 
             // Pre-bundle msw so the first story using it does not trigger a Vite reload

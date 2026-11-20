@@ -108,9 +108,25 @@ useMockRequest(
 
 See `playground/stories/app/components/VPaginatedList/Default.stories.vue`: it mocks the requests of the `VPaginatedList` component, with a configurable delay.
 
+### Server-side rendering
+
+Requests made during SSR are mocked too, with `msw/node` in the server process. Data fetched on the server reaches
+the client through the payload; the browser worker handles the following requests.
+
+- Handlers are scoped to the render that registered them: concurrent renders never share mocks. For this, the module
+  forces Nuxt `experimental.asyncContext` on in the app that renders the stories.
+- Requests that lose the Nuxt async context (detached timers, some third-party SDKs) are not mocked.
+- Handlers are released with the render's Nuxt app, so requests still in flight after the HTML is sent stay mocked.
+- **Only absolute URLs are mocked on the server.** Nuxt serves relative calls such as `$fetch('/api/…')` from Nitro
+  directly, without a network request, so MSW never sees them.
+- In shell mode the frame inherits the shell's `ssr` option. Set `stories.frameSsr: true` to render stories on the
+  server anyway.
+
+See `playground/stories/app/components/mock/ServerRendered.stories.vue`.
+
 ### Limits
 
-- Client only: requests made on the server (SSR, Nitro routes) are not mocked. Stories are meant to run with `ssr: false`.
+- On the server, only absolute URLs are mocked (see above); Nitro server routes themselves are never mocked.
 - Service workers need a secure context (`localhost` or HTTPS). The frame is cross-origin in dev (shell and frame use
   different ports): browsers that block third-party service workers in iframes (e.g. strict privacy settings) will not
   mock requests; the story still renders, with a warning in the console.
