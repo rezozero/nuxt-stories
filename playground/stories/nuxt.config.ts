@@ -8,5 +8,7 @@ export default defineNuxtConfig({
     stories: {
         mode: 'shell',
         frameCwd: '../',
+        // Render stories on the server too, so requests are mocked during SSR
+        frameSsr: true,
     },
 })
