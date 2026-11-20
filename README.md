@@ -126,7 +126,7 @@ See `playground/stories/app/components/mock/ServerRendered.stories.vue`.
 
 ### Limits
 
-- Client only: requests made on the server (SSR, Nitro routes) are not mocked. Stories are meant to run with `ssr: false`.
+- On the server, only absolute URLs are mocked (see above); Nitro server routes themselves are never mocked.
 - Service workers need a secure context (`localhost` or HTTPS). The frame is cross-origin in dev (shell and frame use
   different ports): browsers that block third-party service workers in iframes (e.g. strict privacy settings) will not
   mock requests; the story still renders, with a warning in the console.
