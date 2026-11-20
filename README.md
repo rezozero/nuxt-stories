@@ -67,6 +67,56 @@ You can add assets to your stories by adding a `stories` folder in the `/server`
 All the assets in this folder will be available as public assets with the prefix `/stories`.  
 You can use it like the `/public` folder in the Nuxt app, but the folder will be available only when the stories are available too.
 
+## Mocking requests
+
+Stories can mock network requests with [MSW](https://mswjs.io) (Mock Service Worker v2).
+
+### Installation
+
+`msw` is an optional peer dependency: install it in the project that renders the stories.
+
+```bash
+pnpm add -D msw
+```
+
+Nothing else is needed: the module serves `mockServiceWorker.js` itself (no `msw init`), at the app base URL so the
+worker controls the story frame. Without `msw`, nothing is registered nor loaded.
+
+### Usage
+
+Call the auto-imported `useMockRequest()` in a story with one or more MSW handlers:
+
+```vue
+<script lang="ts" setup>
+import { delay, http, HttpResponse } from 'msw'
+
+const props = defineProps({ loadingDelay: { type: Number, default: 0 } })
+
+useMockRequest(
+    http.get('*/items', async ({ request }) => {
+        await delay(props.loadingDelay)
+        return HttpResponse.json({ 'hydra:member': [], 'hydra:totalItems': 0 })
+    }),
+)
+</script>
+```
+
+- The worker is started once, before the app mounts, so the first requests of a story are already mocked.
+- Handlers are active while the story is mounted and removed when it unmounts (story change, hot reload).
+- Resolvers run on each request: reactive values read inside them (props, `useStoryControls()`) are up to date.
+- Unmatched requests go to the network (`onUnhandledRequest: 'bypass'`).
+
+See `playground/stories/app/components/mock/PaginatedList.stories.vue` for a paginated list with a configurable delay.
+
+### Limits
+
+- Client only: requests made on the server (SSR, Nitro routes) are not mocked. Stories are meant to run with `ssr: false`.
+- Service workers need a secure context (`localhost` or HTTPS). The frame is cross-origin in dev (shell and frame use
+  different ports): browsers that block third-party service workers in iframes (e.g. strict privacy settings) will not
+  mock requests; the story still renders, with a warning in the console.
+- Once `msw` is installed, the worker starts in every story frame, even for stories without mocks.
+- Set `stories.mock: false` to disable mocking even when `msw` is installed.
+
 ## Development
 
 ```bash
