@@ -7,9 +7,12 @@ import {
     resolveFiles,
     addComponent,
     addPlugin,
+    addImports,
     addImportsDir,
+    addTemplate,
     extendPages,
     resolveModule,
+    tryResolveModule,
     useLogger,
 } from '@nuxt/kit'
 import type { NuxtPage, NuxtModule } from '@nuxt/schema'
@@ -47,6 +50,12 @@ export interface NuxtStoriesOptions {
      * Directory (relative to each layer root) whose contents are served as public assets.
      */
     publicAssetsDir?: string
+    /**
+     * Enable request mocking in stories with `useMockRequest()`.
+     * Only active when the optional `msw` peer dependency is installed.
+     * @default true
+     */
+    mock?: boolean
     route?: NuxtPage
     root?: string | string[]
     pattern?: string | string[]
@@ -61,6 +70,7 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
     defaults: {
         enabled: true,
         mode: 'all',
+        mock: true,
     },
     async setup(options, nuxt) {
         if (!options.enabled) return
@@ -373,8 +383,36 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
             })
         }
 
+        let mockWorkerDir: string | undefined
+
         // IMPORTS
         addImportsDir(resolver.resolve('./runtime/composables'))
+
+        // MOCKS — MSW is an optional peer dependency, resolved from the app, and only
+        // needed where stories render (the frame). Without it nothing is registered.
+        const mswWorkerPath =
+            options.mock && mode !== 'shell'
+                ? await tryResolveModule('msw/mockServiceWorker.js', [nuxt.options.rootDir, ...nuxt.options.modulesDir])
+                : undefined
+
+        if (mswWorkerPath) {
+            // Serve the worker script that matches the installed msw version at the app base URL,
+            // so its scope covers the frame routes (no `msw init` needed in the project).
+            const workerTemplate = addTemplate({
+                filename: 'nuxt-stories/msw/mockServiceWorker.js',
+                getContents: () => fs.promises.readFile(mswWorkerPath, 'utf-8'),
+                write: true,
+            })
+            mockWorkerDir = path.dirname(workerTemplate.dst)
+
+            addPlugin({ src: resolver.resolve('./runtime/mock/plugin.client'), mode: 'client' })
+            addImports({ name: 'useMockRequest', from: resolver.resolve('./runtime/mock/use-mock-request') })
+
+            // Pre-bundle msw so the first story using it does not trigger a Vite reload
+            nuxt.options.vite.optimizeDeps ||= {}
+            nuxt.options.vite.optimizeDeps.include ||= []
+            nuxt.options.vite.optimizeDeps.include.push('msw', 'msw/browser')
+        }
 
         // PAGES
         // Shell mode: only registers shell routes (reads story file paths for nav but renders via iframe)
@@ -453,6 +491,10 @@ const _module: NuxtModule<NuxtStoriesOptions> = defineNuxtModule<NuxtStoriesOpti
                 dir: resolver.resolve('./runtime/public'),
                 maxAge: 60 * 60 * 24 * 365,
             })
+
+            if (mockWorkerDir) {
+                nitroConfig.publicAssets.push({ dir: mockWorkerDir, maxAge: 0 })
+            }
 
             // Expose stories assets directories as public assets
             const assetsSubDir = options.publicAssetsDir ?? 'stories/assets'
